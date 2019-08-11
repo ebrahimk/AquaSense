@@ -1,0 +1,8 @@
+{
+  "name": "AquaSense",
+  "integrations": {
+    "cordova": {},
+    "capacitor": {}
+  },
+  "type": "angular"
+}

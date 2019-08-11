@@ -1,0 +1,7 @@
+{
+  "appId": "com.aquasense.app",
+  "appName": "AquaSense",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www"
+}
