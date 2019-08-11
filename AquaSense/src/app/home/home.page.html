@@ -7,13 +7,17 @@
 </ion-header>
 
 <ion-content>
-    <ion-list> 
-     <button ion-item *ngFor="let device of devices" (click)="deviceSelected(device)">
-       <h2>{{ device.name || 'Unnamed' }}</h2>
-       <p>{{ device.id }}</p>
-       <p>RSSI: {{ device.rssi }}</p>
-     </button>  
-    </ion-list> 
+  
+ <ion-list padding>
+    <ion-button block (click)="scan()"> scan  <ion-icon name="bluetooth"></ion-icon> </ion-button>
+    <ion-list-header>
+      Discovered Devices 
+    </ion-list-header>
+    <ion-item button=true *ngFor="let device of devices" (click)="deviceSelected(device)">
+      {{ device.name || 'Unnamed' }} : {{ device.rssi }} <ion-icon name="logo-rss"></ion-icon> 
+    </ion-item>
+    <ion-spinner name="crescent" *ngIf="gettingDevices"></ion-spinner>
+  </ion-list>
  </ion-content>
  
  <ion-footer>
@@ -21,3 +25,8 @@
      <p>{{ statusMessage }}</p>
    </ion-toolbar>
  </ion-footer>
+
+
+ <!--
+   <button ion-button block (click)="disconnect()">Disconnect</button>
+ -->

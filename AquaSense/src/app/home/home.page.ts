@@ -12,6 +12,8 @@ export class HomePage {
   devices: any[] = [];
   statusMessage: string;
   peripheral: any = {};
+  gettingDevices: boolean;
+  connection: any;
 
   constructor(public navCtrl: NavController,
               private toastCtrl: ToastController,
@@ -27,7 +29,7 @@ export class HomePage {
   scan() {
     this.setStatus('Scanning for Bluetooth LE Devices');
     this.devices = [];  // clear list
-
+    this.gettingDevices = true; 
     this.ble.scan([], 5).subscribe(
       device => this.onDeviceDiscovered(device), 
       error => this.scanError(error)
@@ -37,7 +39,6 @@ export class HomePage {
   }
 
   onDeviceDiscovered(device) {
-    console.log('Discovered ' + JSON.stringify(device, null, 2));
     this.ngZone.run(() => {
       this.devices.push(device);
     });
@@ -58,6 +59,7 @@ export class HomePage {
     console.log(message);
     this.ngZone.run(() => {
       this.statusMessage = message;
+      this.gettingDevices = false;
     });
   }
 
@@ -85,4 +87,11 @@ async onDeviceDisconnected(peripheral) {
   });
   await toast.present();
 }
+
+/*
+  disconnect(device) {
+        this.ble.disconnect(device.id).
+  }
+*/
+
 }
