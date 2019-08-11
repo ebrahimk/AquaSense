@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { BLE } from '@ionic-native/ble/ngx';
+import { Component, NgZone } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
-import { AlertController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -9,83 +9,80 @@ import { AlertController } from '@ionic/angular';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
+  devices: any[] = [];
+  statusMessage: string;
+  peripheral: any = {};
 
-  unpairedDevices: any;
-  pairedDevices: any;
-  gettingDevices: boolean;
-  constructor(private bluetoothSerial: BluetoothSerial, public alertController: AlertController) {
-    bluetoothSerial.enable();
+  constructor(public navCtrl: NavController,
+              private toastCtrl: ToastController,
+              private ble: BLE,
+              private ngZone: NgZone) {
   }
 
-  startScanning() {
-    this.pairedDevices = null;
-    this.unpairedDevices = null;
-    this.gettingDevices = true;
-    this.bluetoothSerial.discoverUnpaired().then((success) => {
-      this.unpairedDevices = success;
-      this.gettingDevices = false;
-      success.forEach(element => {
-        // alert(element.name);
-      });
-    },
-      (err) => {
-        console.log(err);
-      });
-
-    this.bluetoothSerial.list().then((success) => {
-      this.pairedDevices = success;
-    },
-      (err) => {
-
-      });
+  ionViewDidEnter() {
+    console.log('ionViewDidEnter');
+    this.scan();
   }
-  success = (data) => alert(data);
-  fail = (error) => alert(error);
 
-  async selectDevice(address: any) {
-    const alert = await this.alertController.create({
-      header: 'Connect',
-      subHeader: 'Subtitle',
-      message: 'Do you want to connect with?',
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          handler: () => {
-            console.log('Cancel clicked');
-          }
-        },
-        {
-          text: 'Connect',
-          handler: () => {
-            this.bluetoothSerial.connect(address).subscribe(this.success, this.fail);
-          }
-        }
-      ]
+  scan() {
+    this.setStatus('Scanning for Bluetooth LE Devices');
+    this.devices = [];  // clear list
+
+    this.ble.scan([], 5).subscribe(
+      device => this.onDeviceDiscovered(device), 
+      error => this.scanError(error)
+    );
+
+    setTimeout(this.setStatus.bind(this), 5000, 'Scan complete');
+  }
+
+  onDeviceDiscovered(device) {
+    console.log('Discovered ' + JSON.stringify(device, null, 2));
+    this.ngZone.run(() => {
+      this.devices.push(device);
     });
-    await alert.present();
   }
 
-  async disconnect() {
-    const alert = await this.alertController.create({
-      header: 'Disconnect?',
-      message: 'Do you want to Disconnect?',
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          handler: () => {
-            console.log('Cancel clicked');
-          }
-        },
-        {
-          text: 'Disconnect',
-          handler: () => {
-            this.bluetoothSerial.disconnect();
-          }
-        }
-      ]
+  // If location permission is denied, you'll end up here
+  async scanError(error) {
+    this.setStatus('Error ' + error);
+    const toast = await this.toastCtrl.create({
+      message: 'Error scanning for Bluetooth low energy devices',
+      position: 'middle',
+      duration: 5000
     });
-    await alert.present();
+    await toast.present();
   }
+
+  setStatus(message) {
+    console.log(message);
+    this.ngZone.run(() => {
+      this.statusMessage = message;
+    });
+  }
+
+
+deviceSelected(device) {
+  this.ble.connect(device.id).subscribe(
+    peripheral => this.onConnected(peripheral),
+    peripheral => this.onDeviceDisconnected(peripheral)
+  );
+
+}
+
+onConnected(peripheral) {
+  this.ngZone.run(() => {
+    this.setStatus('');
+    this.peripheral = peripheral;
+  });
+}
+
+async onDeviceDisconnected(peripheral) {
+  const toast = await this.toastCtrl.create({
+    message: 'The peripheral unexpectedly disconnected',
+    duration: 3000,
+    position: 'middle'
+  });
+  await toast.present();
+}
 }
