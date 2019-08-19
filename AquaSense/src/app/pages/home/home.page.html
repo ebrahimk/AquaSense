@@ -33,14 +33,19 @@
  </ion-content>
 
 
+
+
  <ion-footer>
     <ion-toolbar>
-        <ion-button block (click)="onConnected()"> Graph <ion-icon slot="end" name="analytics"></ion-icon> </ion-button>
+        <ion-button block (click)="deviceSelected()"> Graph <ion-icon slot="end" name="analytics"></ion-icon> </ion-button>
     </ion-toolbar>
   </ion-footer>
 
- <!--
-   <button ion-button block (click)="disconnect()">Disconnect</button>
+  <!--
+"deviceSelected(device)"
+
+
+    <button ion-button block (click)="disconnect()">Disconnect</button>
    render new page after successfull connection
    with a graph that spits out realy time data
  -->

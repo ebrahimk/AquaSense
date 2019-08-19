@@ -1,22 +1,79 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, NgZone, OnInit } from '@angular/core';
+import { NavController, ToastController } from '@ionic/angular';
 import { Chart } from 'chart.js';
-import { interval, Subscription } from 'rxjs';
+import { BLE } from '@ionic-native/ble/ngx';
+import { DataService } from '../../data-service.service';
+
+const THERMOMETER_SERVICE = 'bbb0';
+const TEMPERATURE_CHARACTERISTIC = 'bbb1';
 
 @Component({
-  selector: 'app-graph',
+selector: 'app-graph',
   templateUrl: './graph.page.html',
   styleUrls: ['./graph.page.scss'],
 })
-export class GraphPage {
+export class GraphPage implements OnInit {
+
+  device: any;
+
+  constructor(public navCtrl: NavController,
+              private ble: BLE,
+              private toastCtrl: ToastController,
+              private ngZone: NgZone,
+              private dataService: DataService
+              ) {}
+
   @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
   @ViewChild('lineTemp', { static: false }) lineCanvasTemp: ElementRef;
   ecChart: Chart;
   tempChart: Chart;
   count = -50; // create a setter
+  peripheral: any = {};
+  temperature: number;
+  conductivity: number;
+  statusMessage: string;
 
-  constructor() {}
+
   timerIdec = setInterval(() => this.addData(this.ecChart, this.count, this.generateSinc(this.count)), 1);
   timerIdtemp = setInterval(() => this.addData(this.tempChart, this.count, this.generateSinc(this.count)), 1);
+
+  ngOnInit(): void {
+    this.device = this.dataService.myParam.data;
+    console.log('ttempting to connect');
+    this.ble.connect(this.device.id).subscribe(
+      peripheral => this.onConnected(peripheral),
+      peripheral => this.showAlert('Disconnected', 'Unable to Connect')     // navigate back to the home page
+    );
+  }
+
+  onConnected(peripheral) {
+
+    this.peripheral = peripheral;
+
+    // Subscribe for notifications when the temperature changes
+    this.ble.startNotification(this.peripheral.id, THERMOMETER_SERVICE, TEMPERATURE_CHARACTERISTIC).subscribe(
+      data => this.onTemperatureChange(data),
+      () => this.showAlert('Unexpected Error', 'Failed to subscribe for temperature changes')
+    );
+
+    // Read the current value of the temperature characteristic
+    this.ble.read(this.peripheral.id, THERMOMETER_SERVICE, TEMPERATURE_CHARACTERISTIC).then(
+      data => this.onTemperatureChange(data),
+      () => this.showAlert('Unexpected Error', 'Failed to get temperature')
+    );
+  }
+
+  onTemperatureChange(buffer: ArrayBuffer) {
+
+    // Temperature is a 4 byte floating point value
+    const data = new Float32Array(buffer);
+    console.log(data[0]);
+
+    this.ngZone.run(() => {
+      this.temperature = data[0];
+    });
+
+  }
 
 
   // tslint:disable-next-line: use-lifecycle-interface
@@ -31,7 +88,7 @@ export class GraphPage {
         labels: [],
         datasets: [
           {
-            //label: 'Electrical Conductivity',
+            // label: 'Electrical Conductivity',
             fill: true,
             lineTension: 0.1,
             backgroundColor: 'rgba(75,192,192,.1)',
@@ -92,7 +149,7 @@ export class GraphPage {
         labels: [],
         datasets: [
           {
-            //label: 'Temperature',
+            // label: 'Temperature',
             fill: true,
             lineTension: 0.1,
             backgroundColor: 'rgba(255,46,46,0.1)',
@@ -159,7 +216,7 @@ export class GraphPage {
     this.count = -50; // replace with bluetooth data pipeline
     this.createGraph();
     this.timerIdec = setInterval(() => this.addData(this.ecChart, this.count, this.generateSinc(this.count)), 1);
-    this.timerIdtemp = setInterval(() => this.addData(this.tempChart, this.count, Math.sin(-this.generateSinc(this.count) * 2 )), 1);
+    this.timerIdtemp = setInterval(() => this.addData(this.tempChart, this.count, Math.sin(-this.generateSinc(this.count) * 2)), 1);
   }
 
   addData(chart, label, data) {
@@ -176,9 +233,24 @@ export class GraphPage {
   generateSinc(x) {
     return ((Math.sin(x) * 3.14) / (3.14 * x));
   }
+
+  setStatus(message) {
+    console.log(message);
+    this.ngZone.run(() => {
+      this.statusMessage = message;
+    });
+  }
+
+  async showAlert(peripheral, notification) {
+    const toast = await this.toastCtrl.create({
+      message: notification,
+      duration: 3000,
+      position: 'middle'
+    });
+    await toast.present();
+  }
+
 }
-
-
 
 /*
 this.ble.startNotification(this.peripheral.id, THERMOMETER_SERVICE, TEMPERATURE_CHARACTERISTIC).subscribe(

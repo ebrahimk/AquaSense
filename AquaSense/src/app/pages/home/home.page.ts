@@ -2,6 +2,8 @@ import { BLE } from '@ionic-native/ble/ngx';
 import { Component, NgZone } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
+import { DataService } from '../../data-service.service';
+
 
 @Component({
   selector: 'app-home',
@@ -9,17 +11,25 @@ import { ToastController } from '@ionic/angular';
   styleUrls: ['home.page.scss'],
 })
 export class HomePage {
+
+  constructor(public navCtrl: NavController,
+              private toastCtrl: ToastController,
+              private ble: BLE,
+              private ngZone: NgZone,
+              private dataService: DataService) {
+  }
   devices: any[] = [];
   statusMessage: string;
   peripheral: any = {};
   gettingDevices: boolean;
   connection: any;
 
-  constructor(public navCtrl: NavController,
-              private toastCtrl: ToastController,
-              private ble: BLE,
-              private ngZone: NgZone) {
-  }
+  person = {
+    firstname: 'Tom',
+    lastname: 'Hanks'
+  };
+
+  variable = 'moose';
 
   ionViewDidEnter() {
     console.log('ionViewDidEnter');
@@ -63,13 +73,15 @@ export class HomePage {
     });
   }
 
-
 deviceSelected(device) {
-  this.ble.connect(device.id).subscribe(
+  this.dataService.myParam = {data: device};
+  this.navCtrl.navigateRoot('/graph');
+}
+
+ /* this.ble.connect(device.id).subscribe(
     peripheral => this.onConnected(peripheral),
     peripheral => this.onDeviceDisconnected(peripheral)
   );
-
 }
 
 onConnected(peripheral) {
@@ -79,6 +91,7 @@ onConnected(peripheral) {
     this.navCtrl.navigateRoot('/graph');
   });
 }
+*/
 
 async onDeviceDisconnected(peripheral) {
   const toast = await this.toastCtrl.create({
