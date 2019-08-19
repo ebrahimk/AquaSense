@@ -1,0 +1,42 @@
+<ion-content>
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>
+        Data
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="ion-padding">
+
+
+    <ion-card>
+      <ion-card-content>
+        <canvas #lineEC></canvas>
+      </ion-card-content>
+    </ion-card>
+    <ion-card>
+      <ion-card-content>
+        <canvas #lineTemp></canvas>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row >
+        <ion-col align-self: center>
+          <ion-button block (click)="stop()"> Stop <ion-icon slot="end" name="square"></ion-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col align-self: center>
+          <ion-button block (click)="start()"> Reset <ion-icon slot="end" name="play"></ion-icon>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

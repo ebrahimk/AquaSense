@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      AquaSense
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+          <ion-grid>
+              <ion-row>
+                <ion-col>
+                    <ion-button block (click)="scan()"> scan  <ion-icon slot="end" name="bluetooth"></ion-icon> </ion-button>
+                </ion-col>
+                <ion-col>
+                    <ion-spinner name="crescent" *ngIf="gettingDevices"></ion-spinner>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+      </ion-card-title>
+    </ion-card-header>   
+    <ion-card-content>
+      <ion-list padding>
+        <ion-item button=true *ngFor="let device of devices" (click)="deviceSelected(device)">
+        {{ device.name || 'Unnamed' }}: {{ device.rssi }} <ion-icon name="logo-rss"></ion-icon> 
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+ </ion-content>
+
+
+ <ion-footer>
+    <ion-toolbar>
+        <ion-button block (click)="onConnected()"> Graph <ion-icon slot="end" name="analytics"></ion-icon> </ion-button>
+    </ion-toolbar>
+  </ion-footer>
+
+ <!--
+   <button ion-button block (click)="disconnect()">Disconnect</button>
+   render new page after successfull connection
+   with a graph that spits out realy time data
+ -->
