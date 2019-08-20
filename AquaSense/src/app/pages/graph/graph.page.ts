@@ -4,15 +4,15 @@ import { Chart } from 'chart.js';
 import { BLE } from '@ionic-native/ble/ngx';
 import { DataService } from '../../data-service.service';
 
-const THERMOMETER_SERVICE = 'bbb0';
-const TEMPERATURE_CHARACTERISTIC = 'bbb1';
+const UART_SERVICE = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
+const RX_CHARACTERISTIC = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
 
 @Component({
 selector: 'app-graph',
   templateUrl: './graph.page.html',
   styleUrls: ['./graph.page.scss'],
 })
-export class GraphPage implements OnInit {
+export class GraphPage /*implements OnInit*/{
 
   device: any;
 
@@ -21,7 +21,14 @@ export class GraphPage implements OnInit {
               private toastCtrl: ToastController,
               private ngZone: NgZone,
               private dataService: DataService
-              ) {}
+              ) {
+                this.device = this.dataService.myParam.data;
+                console.log('attempting to connect');
+                this.ble.connect(this.device.id).subscribe(
+                  peripheral => this.onConnected(peripheral),
+                  peripheral => this.showAlert('Disconnected', 'Unable to Connect')     // navigate back to the home page
+                );
+              }
 
   @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
   @ViewChild('lineTemp', { static: false }) lineCanvasTemp: ElementRef;
@@ -37,6 +44,7 @@ export class GraphPage implements OnInit {
   timerIdec = setInterval(() => this.addData(this.ecChart, this.count, this.generateSinc(this.count)), 1);
   timerIdtemp = setInterval(() => this.addData(this.tempChart, this.count, this.generateSinc(this.count)), 1);
 
+  /*
   ngOnInit(): void {
     this.device = this.dataService.myParam.data;
     console.log('ttempting to connect');
@@ -45,19 +53,19 @@ export class GraphPage implements OnInit {
       peripheral => this.showAlert('Disconnected', 'Unable to Connect')     // navigate back to the home page
     );
   }
+*/
 
   onConnected(peripheral) {
 
     this.peripheral = peripheral;
-
     // Subscribe for notifications when the temperature changes
-    this.ble.startNotification(this.peripheral.id, THERMOMETER_SERVICE, TEMPERATURE_CHARACTERISTIC).subscribe(
+    this.ble.startNotification(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).subscribe(
       data => this.onTemperatureChange(data),
       () => this.showAlert('Unexpected Error', 'Failed to subscribe for temperature changes')
     );
 
     // Read the current value of the temperature characteristic
-    this.ble.read(this.peripheral.id, THERMOMETER_SERVICE, TEMPERATURE_CHARACTERISTIC).then(
+    this.ble.read(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).then(
       data => this.onTemperatureChange(data),
       () => this.showAlert('Unexpected Error', 'Failed to get temperature')
     );
@@ -66,12 +74,14 @@ export class GraphPage implements OnInit {
   onTemperatureChange(buffer: ArrayBuffer) {
 
     // Temperature is a 4 byte floating point value
-    const data = new Float32Array(buffer);
+    const data = new Uint8Array(buffer);
     console.log(data[0]);
-
+    this.showAlert('data received', data[0].toString());
+    /*
     this.ngZone.run(() => {
       this.temperature = data[0];
     });
+    */
 
   }
 

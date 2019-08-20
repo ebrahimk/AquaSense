@@ -22,12 +22,31 @@
     </ion-card>
 
   </div>
+
+
+  <ion-card>
+    <ion-list padding>
+      <ion-item  *ngFor="let characteristic of device.characteristics" >
+        {{ characteristic.service }} : {{ characteristic.characteristic }} 
+      </ion-item>
+    </ion-list>
+  </ion-card>
+
+
+  <ion-card>
+      <ion-list padding>
+        <ion-item  *ngFor="let services of device.services" >
+          {{ services }} 
+        </ion-item>
+      </ion-list>
+    </ion-card>
+
 </ion-content>
 
 <ion-footer>
   <ion-toolbar>
     <ion-grid>
-      <ion-row >
+      <ion-row>
         <ion-col align-self: center>
           <ion-button block (click)="stop()"> Stop <ion-icon slot="end" name="square"></ion-icon>
           </ion-button>

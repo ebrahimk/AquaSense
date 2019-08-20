@@ -24,12 +24,55 @@ export class HomePage {
   gettingDevices: boolean;
   connection: any;
 
-  person = {
-    firstname: 'Tom',
-    lastname: 'Hanks'
-  };
-
-  variable = 'moose';
+  testObj = {
+    name: 'Battery Demo',
+    id: '20:FF:D0:FF:D1:C0',
+    advertising: [2, 1, 6, 3, 3, 15, 24, 8, 9, 66, 97, 116, 116, 101, 114, 121],
+    rssi: -55,
+    services: [
+        '1800',
+        '1801',
+        '180f'
+    ],
+    characteristics: [
+        {
+            service: '1800',
+            characteristic: '2a00',
+            properties: [
+                'Read'
+            ]
+        },
+        {
+            service: '1800',
+            characteristic: '2a01',
+            properties: [
+                'Read'
+            ]
+        },
+        {
+            service: '1801',
+            characteristic: '2a05',
+            properties: [
+                'Read'
+            ]
+        },
+        {
+            service: '180f',
+            characteristic: '2a19',
+            properties: [
+                'Read'
+            ],
+            descriptors: [
+                {
+                    uuid: '2901'
+                },
+                {
+                    uuid: '2904'
+                }
+            ]
+        }
+    ]
+};
 
   ionViewDidEnter() {
     console.log('ionViewDidEnter');
@@ -75,23 +118,10 @@ export class HomePage {
 
 deviceSelected(device) {
   this.dataService.myParam = {data: device};
+  // this.dataService.myParam = {data: this.testObj};
   this.navCtrl.navigateRoot('/graph');
 }
 
- /* this.ble.connect(device.id).subscribe(
-    peripheral => this.onConnected(peripheral),
-    peripheral => this.onDeviceDisconnected(peripheral)
-  );
-}
-
-onConnected(peripheral) {
-  this.ngZone.run(() => {
-    this.setStatus('');
-    this.peripheral = peripheral;
-    this.navCtrl.navigateRoot('/graph');
-  });
-}
-*/
 
 async onDeviceDisconnected(peripheral) {
   const toast = await this.toastCtrl.create({
@@ -102,10 +132,5 @@ async onDeviceDisconnected(peripheral) {
   await toast.present();
 }
 
-/*
-  disconnect(device) {
-        this.ble.disconnect(device.id).
-  }
-*/
 
 }
