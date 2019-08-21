@@ -6,6 +6,7 @@ import { DataService } from '../../data-service.service';
 
 const UART_SERVICE = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
 const RX_CHARACTERISTIC = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
+const TX_CHARACTERISTIC = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E';
 
 @Component({
 selector: 'app-graph',
@@ -13,9 +14,8 @@ selector: 'app-graph',
   styleUrls: ['./graph.page.scss'],
 })
 export class GraphPage /*implements OnInit*/{
-
   device: any;
-
+  
   constructor(public navCtrl: NavController,
               private ble: BLE,
               private toastCtrl: ToastController,
@@ -39,6 +39,7 @@ export class GraphPage /*implements OnInit*/{
   temperature: number;
   conductivity: number;
   statusMessage: string;
+  dataOut: string;
 
 
   timerIdec = setInterval(() => this.addData(this.ecChart, this.count, this.generateSinc(this.count)), 1);
@@ -65,10 +66,17 @@ export class GraphPage /*implements OnInit*/{
     );
 
     // Read the current value of the temperature characteristic
+    /*this.ble.read(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).then(
+      data => this.onTemperatureChange(data),
+      () => this.showAlert('Unexpected Error', 'Failed to get temperature')
+    );*/
+
+    /*
     this.ble.read(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).then(
       data => this.onTemperatureChange(data),
       () => this.showAlert('Unexpected Error', 'Failed to get temperature')
     );
+    */
   }
 
   onTemperatureChange(buffer: ArrayBuffer) {
@@ -258,6 +266,26 @@ export class GraphPage /*implements OnInit*/{
       position: 'middle'
     });
     await toast.present();
+  }
+
+
+  str2ab(str) {
+    const buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
+    const bufView = new Uint16Array(buf);
+    for (let i = 0, strLen = str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+  }
+
+
+  sendData() {
+    // console.log(this.dataOut);
+    const buffer = this.str2ab(this.dataOut);
+    this.ble.write(this.peripheral.id, UART_SERVICE, TX_CHARACTERISTIC, buffer).then(
+      () => this.showAlert('Success', 'Data sent'),
+      e => this.showAlert('Unexpected Error', 'Error sending data')
+    );
   }
 
 }

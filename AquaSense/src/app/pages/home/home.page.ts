@@ -30,49 +30,49 @@ export class HomePage {
     advertising: [2, 1, 6, 3, 3, 15, 24, 8, 9, 66, 97, 116, 116, 101, 114, 121],
     rssi: -55,
     services: [
-        '1800',
-        '1801',
-        '180f'
+      '1800',
+      '1801',
+      '180f'
     ],
     characteristics: [
-        {
-            service: '1800',
-            characteristic: '2a00',
-            properties: [
-                'Read'
-            ]
-        },
-        {
-            service: '1800',
-            characteristic: '2a01',
-            properties: [
-                'Read'
-            ]
-        },
-        {
-            service: '1801',
-            characteristic: '2a05',
-            properties: [
-                'Read'
-            ]
-        },
-        {
-            service: '180f',
-            characteristic: '2a19',
-            properties: [
-                'Read'
-            ],
-            descriptors: [
-                {
-                    uuid: '2901'
-                },
-                {
-                    uuid: '2904'
-                }
-            ]
-        }
+      {
+        service: '1800',
+        characteristic: '2a00',
+        properties: [
+          'Read'
+        ]
+      },
+      {
+        service: '1800',
+        characteristic: '2a01',
+        properties: [
+          'Read'
+        ]
+      },
+      {
+        service: '1801',
+        characteristic: '2a05',
+        properties: [
+          'Read'
+        ]
+      },
+      {
+        service: '180f',
+        characteristic: '2a19',
+        properties: [
+          'Read'
+        ],
+        descriptors: [
+          {
+            uuid: '2901'
+          },
+          {
+            uuid: '2904'
+          }
+        ]
+      }
     ]
-};
+  };
 
   ionViewDidEnter() {
     console.log('ionViewDidEnter');
@@ -116,21 +116,25 @@ export class HomePage {
     });
   }
 
-deviceSelected(device) {
-  this.dataService.myParam = {data: device};
-  // this.dataService.myParam = {data: this.testObj};
-  this.navCtrl.navigateRoot('/graph');
-}
+  deviceSelected(device) {
+    this.dataService.myParam = { data: device };
+    // this.dataService.myParam = {data: this.testObj};
+    this.navCtrl.navigateRoot('/graph');
+  }
+
+  deviceSelectedTest() {
+    this.dataService.myParam = { data: this.testObj };
+    this.navCtrl.navigateRoot('/graph');
+  }
 
 
-async onDeviceDisconnected(peripheral) {
-  const toast = await this.toastCtrl.create({
-    message: 'The peripheral unexpectedly disconnected',
-    duration: 3000,
-    position: 'middle'
-  });
-  await toast.present();
-}
-
+  async onDeviceDisconnected(peripheral) {
+    const toast = await this.toastCtrl.create({
+      message: 'The peripheral unexpectedly disconnected',
+      duration: 3000,
+      position: 'middle'
+    });
+    await toast.present();
+  }
 
 }
