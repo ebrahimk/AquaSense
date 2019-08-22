@@ -9,88 +9,75 @@ const RX_CHARACTERISTIC = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
 const TX_CHARACTERISTIC = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E';
 
 @Component({
-selector: 'app-graph',
+  selector: 'app-graph',
   templateUrl: './graph.page.html',
   styleUrls: ['./graph.page.scss'],
 })
-export class GraphPage /*implements OnInit*/{
+export class GraphPage /*implements OnInit*/ {
   device: any;
-  
+
   constructor(public navCtrl: NavController,
               private ble: BLE,
               private toastCtrl: ToastController,
               private ngZone: NgZone,
               private dataService: DataService
-              ) {
-                this.device = this.dataService.myParam.data;
-                console.log('attempting to connect');
-                this.ble.connect(this.device.id).subscribe(
-                  peripheral => this.onConnected(peripheral),
-                  peripheral => this.showAlert('Disconnected', 'Unable to Connect')     // navigate back to the home page
-                );
-              }
-
-  @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
-  @ViewChild('lineTemp', { static: false }) lineCanvasTemp: ElementRef;
-  ecChart: Chart;
-  tempChart: Chart;
-  count = -50; // create a setter
-  peripheral: any = {};
-  temperature: number;
-  conductivity: number;
-  statusMessage: string;
-  dataOut: string;
-
-
-  timerIdec = setInterval(() => this.addData(this.ecChart, this.count, this.generateSinc(this.count)), 1);
-  timerIdtemp = setInterval(() => this.addData(this.tempChart, this.count, this.generateSinc(this.count)), 1);
-
-  /*
-  ngOnInit(): void {
+  ) {
     this.device = this.dataService.myParam.data;
-    console.log('ttempting to connect');
+    console.log('attempting to connect');
     this.ble.connect(this.device.id).subscribe(
       peripheral => this.onConnected(peripheral),
       peripheral => this.showAlert('Disconnected', 'Unable to Connect')     // navigate back to the home page
     );
   }
-*/
+
+  @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
+  @ViewChild('lineTemp', { static: false }) lineCanvasTemp: ElementRef;
+  ecChart: Chart;
+  tempChart: Chart;
+  peripheral: any = {};
+  count = 0;
+  temperature: number;
+  conductivity: number;
+  statusMessage: string;
+  dataOut: string;
+  dataIn: number;
+
+  // sinc functino generation for testing
+  // timerIdec = setInterval(() => this.addData(this.ecChart, this.count, this.generateSinc(this.count)), 1);
+  // timerIdtemp = setInterval(() => this.addData(this.tempChart, this.count, this.generateSinc(this.count)), 1);
 
   onConnected(peripheral) {
-
-    this.peripheral = peripheral;
     // Subscribe for notifications when the temperature changes
+    this.peripheral = peripheral;
     this.ble.startNotification(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).subscribe(
       data => this.onTemperatureChange(data),
       () => this.showAlert('Unexpected Error', 'Failed to subscribe for temperature changes')
     );
-
-    // Read the current value of the temperature characteristic
-    /*this.ble.read(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).then(
-      data => this.onTemperatureChange(data),
-      () => this.showAlert('Unexpected Error', 'Failed to get temperature')
-    );*/
-
-    /*
-    this.ble.read(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).then(
-      data => this.onTemperatureChange(data),
-      () => this.showAlert('Unexpected Error', 'Failed to get temperature')
-    );
-    */
   }
 
   onTemperatureChange(buffer: ArrayBuffer) {
-
     // Temperature is a 4 byte floating point value
     const data = new Uint8Array(buffer);
-    console.log(data[0]);
-    this.showAlert('data received', data[0].toString());
+    // this.showAlert('Input Received',  this.uint8arrayToString(buffer));
+    this.dataIn = parseFloat(String.fromCharCode.apply(null, data));
+    this.addData(this.ecChart, this.count, this.dataIn);
+    this.addData(this.tempChart, this.count, this.dataIn);
+    this.count = this.count + 1;
+
     /*
     this.ngZone.run(() => {
       this.temperature = data[0];
     });
     */
+  }
 
+  /*const buffer = [45, 48, 46, 51, 53, 55];
+    const data = new Uint8Array(buffer);
+    console.log(parseFloat(String.fromCharCode.apply(null, data)));
+    */
+
+  uint8arrayToString(myUint8Arr) {
+    return String.fromCharCode.apply(null, myUint8Arr);
   }
 
 
@@ -224,8 +211,8 @@ export class GraphPage /*implements OnInit*/{
   }
 
   stop() {
-    clearInterval(this.timerIdec);
-    clearInterval(this.timerIdtemp);
+    // clearInterval(this.timerIdec);
+    // clearInterval(this.timerIdtemp);
   }
 
   start() {
@@ -233,15 +220,14 @@ export class GraphPage /*implements OnInit*/{
     this.ecChart.destroy();
     this.count = -50; // replace with bluetooth data pipeline
     this.createGraph();
-    this.timerIdec = setInterval(() => this.addData(this.ecChart, this.count, this.generateSinc(this.count)), 1);
-    this.timerIdtemp = setInterval(() => this.addData(this.tempChart, this.count, Math.sin(-this.generateSinc(this.count) * 2)), 1);
+    // this.timerIdec = setInterval(() => this.addData(this.ecChart, this.count, this.generateSinc(this.count)), 1);
+    // this.timerIdtemp = setInterval(() => this.addData(this.tempChart, this.count, Math.sin(-this.generateSinc(this.count) * 2)), 1);
   }
 
   addData(chart, label, data) {
     chart.data.labels.push(label);
     chart.data.datasets[0].data.push(data);
     chart.update();
-    this.count = this.count + .2;
   }
 
   getRandomArbitrary(min, max) {
@@ -290,15 +276,16 @@ export class GraphPage /*implements OnInit*/{
 
 }
 
-/*
-this.ble.startNotification(this.peripheral.id, THERMOMETER_SERVICE, TEMPERATURE_CHARACTERISTIC).subscribe(
-      data => this.onTemperatureChange(data),
-      () => this.showAlert('Unexpected Error', 'Failed to subscribe for temperature changes')
-    )
 
-    // Read the current value of the temperature characteristic
-    this.ble.read(this.peripheral.id, THERMOMETER_SERVICE, TEMPERATURE_CHARACTERISTIC).then(
-      data => this.onTemperatureChange(data),
-      () => this.showAlert('Unexpected Error', 'Failed to get temperature')
-    )
+
+
+/*
+ngOnInit(): void {
+  this.device = this.dataService.myParam.data;
+  console.log('ttempting to connect');
+  this.ble.connect(this.device.id).subscribe(
+    peripheral => this.onConnected(peripheral),
+    peripheral => this.showAlert('Disconnected', 'Unable to Connect')     // navigate back to the home page
+  );
+}
 */

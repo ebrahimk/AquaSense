@@ -82,7 +82,7 @@ export class HomePage {
   scan() {
     this.setStatus('Scanning for Bluetooth LE Devices');
     this.devices = [];  // clear list
-    this.gettingDevices = true;
+    this.gettingDevices = true; 
     this.ble.scan([], 5).subscribe(
       device => this.onDeviceDiscovered(device),
       error => this.scanError(error)

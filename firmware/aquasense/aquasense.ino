@@ -17,6 +17,8 @@
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
+#include <math.h>
+
 
 #include "BluefruitConfig.h"
 
@@ -86,6 +88,9 @@ void error(const __FlashStringHelper*err) {
   while (1);
 }
 
+double x = -50; 
+int count = 0; 
+
 /**************************************************************************/
 /*!
     @brief  Sets up the HW an the BLE module (this function is called
@@ -95,14 +100,7 @@ void error(const __FlashStringHelper*err) {
 void setup(void)
 {
   while (!Serial);  // required for Flora & Micro
-  delay(500);
-
   Serial.begin(115200);
-  Serial.println(F("Adafruit Bluefruit Command <-> Data Mode Example"));
-  Serial.println(F("------------------------------------------------"));
-
-  /* Initialise the module */
-  Serial.print(F("Initialising the Bluefruit LE module: "));
 
   if ( !ble.begin(VERBOSE_MODE) )
   {
@@ -123,16 +121,8 @@ void setup(void)
   ble.echo(false);
 
   Serial.println("Requesting Bluefruit info:");
-  /* Print Bluefruit information */
   ble.info();
-
-  Serial.println(F("Please use Adafruit Bluefruit LE app to connect in UART mode"));
-  Serial.println(F("Then Enter characters to send to Bluefruit"));
-  Serial.println();
-
   ble.verbose(false);  // debug info is a little annoying after this point!
-
-  /* Wait for connection */
   while (! ble.isConnected()) {
       delay(500);
   }
@@ -154,27 +144,49 @@ void setup(void)
   Serial.println(F("******************************"));
 }
 
-/**************************************************************************/
-/*!
-    @brief  Constantly poll for new command or response data
-*/
-/**************************************************************************/
+double getSinc(double x){
+  return ((sin(x) * 3.14) / (3.14 * x)); 
+}
+
+char *dtostrf (double val, signed char width, unsigned char prec, char *sout) {
+  char fmt[20];
+  sprintf(fmt, "%%%d.%df", width, prec);
+  sprintf(sout, fmt, val);
+  return sout;
+}
+
 void loop(void)
 {
   // Check for user input
   char n, inputs[BUFSIZE+1];
 
+
   if (Serial.available())
   {
-    n = Serial.readBytes(inputs, BUFSIZE);
-    inputs[n] = 0;
-    // Send characters to Bluefruit
-    Serial.print("Sending: ");
-    Serial.println(inputs);
-
-    // Send input data to host via Bluefruit
-    ble.print(inputs);
+    char input = Serial.read();
+    if(input == '1'){
+      while(1){
+        if(Serial.available()){
+          if(Serial.read() == '2')
+            break;
+        }
+      }
+    }
+    else if(input = '0') {
+      x = 0; 
+      count = 0;
+    }
   }
+  
+  dtostrf(getSinc(x), 10, 10, inputs);
+  Serial.print(count);
+  Serial.print(": ");
+  count++; 
+  Serial.println(inputs);
+  ble.print(inputs);
+  delay(300);
+  memset (inputs,'\0',sizeof(inputs));
+  x += .2;
 
   // Echo received data
   while ( ble.available() )
