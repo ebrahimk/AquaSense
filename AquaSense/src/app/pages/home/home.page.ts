@@ -10,6 +10,7 @@ import { DataService } from '../../data-service.service';
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
 })
+
 export class HomePage {
 
   constructor(public navCtrl: NavController,

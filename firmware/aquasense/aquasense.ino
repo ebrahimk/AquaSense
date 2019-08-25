@@ -18,12 +18,15 @@
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
 #include <math.h>
+#include <CRC.h>  // MODEBUS 16-bit checksum
 
 #include "BluefruitConfig.h"
 
 #if SOFTWARE_SERIAL_AVAILABLE
 #include <SoftwareSerial.h>
 #endif
+
+
 
 /*=========================================================================
     APPLICATION SETTINGS
@@ -126,9 +129,9 @@ void setup(void)
   Serial.println("Requesting Bluefruit info:");
   ble.info();
   ble.verbose(false); // debug info is a little annoying after this point!
-  while (! ble.isConnected()) {
+  /*while (! ble.isConnected()) {
       delay(500);
-  }
+  }*/
 
   Serial.println(F("******************************"));
 
@@ -163,7 +166,7 @@ char *dtostrf(double val, signed char width, unsigned char prec, char *sout)
 void loop(void)
 {
   // Check for user input
-  char n, inputs[BUFSIZE + 1], chkBuf[4];
+  char n, inputs[BUFSIZE + 1];
 
   if (Serial.available())
   {
@@ -187,9 +190,12 @@ void loop(void)
   }
 
   clearMemory(inputs);
-  clearMemory(chkBuf);
   dtostrf(getSinc(x), 6, 6, inputs);
-  addChksum(inputs, chkBuf);
+  /*Serial.print("String: ");
+  Serial.print(inputs);
+  Serial.print(" *** /16 bit checksum: ");
+  Serial.println(CRC::crc16((uint8_t *)inputs, strlen(inputs)), HEX);*/
+  addChksum(inputs);
   printData(count, inputs);
 
   count++;
@@ -197,7 +203,7 @@ void loop(void)
 
   ble.println(inputs);
 
-  delay(200);
+  delay(20);
 
 
   // Echo received data
@@ -216,11 +222,13 @@ void loop(void)
   }
 }
 
-void addChksum(char* data, char* chkBuf)
+void addChksum(char* data)
 {
-  byte chksum = stringChecksum(data);
+  uint16_t chksum = CRC::crc16((uint8_t *)data, strlen(data));
+  Serial.print("Checksum: ");
+  Serial.println(chksum, HEX);
   strcat(data, "*");
-  snprintf(data+strlen(data), sizeof(chkBuf), "%x", chksum);
+  sprintf(data+strlen(data), "%x", chksum);
 }
 
 byte stringChecksum(char *s)

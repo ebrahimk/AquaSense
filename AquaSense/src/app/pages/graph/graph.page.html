@@ -2,7 +2,7 @@
   <ion-header>
     <ion-toolbar>
       <ion-title>
-        DATA
+        {{ date }} - {{ timer }}
       </ion-title>
     </ion-toolbar>
   </ion-header>
@@ -15,10 +15,79 @@
         <canvas #lineEC></canvas>
       </ion-card-content>
     </ion-card>
+    <!--
     <ion-card>
       <ion-card-content>
         <canvas #lineTemp></canvas>
       </ion-card-content>
+    </ion-card>
+  -->
+
+    <ion-card>
+
+      <ion-item lines="full">
+        <ion-grid>
+          <ion-row>
+            <ion-col>
+              <ion-item line="none">
+                <ion-label slot="start">
+                  Update Frequency (ms)
+                </ion-label>
+                <ion-badge slot="end" color="secondary">{{ updateFreqEC }}</ion-badge>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-range debounce=100 pin=true min="100" max="1000" [(ngModel)]="updateFreqEC" color="secondary" (ionChange)="changeRateEC()">
+              <ion-label slot="start">100</ion-label>
+              <ion-label slot="end">1000</ion-label>
+            </ion-range>
+          </ion-row>
+        </ion-grid>
+      </ion-item>
+
+
+      <ion-item lines="full">
+          <ion-grid>
+            <ion-row>
+              <ion-col>
+                <ion-item line="none">
+                  <ion-label slot="start">
+                    Update Frequency (ms)
+                  </ion-label>
+                  <ion-badge slot="end" color="secondary">{{ updateFreqTemp }}</ion-badge>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-range debounce=100 pin=true min="100" max="1000" [(ngModel)]="updateFreqTemp" color="secondary" (ionChange)="changeRateTemp()">
+                <ion-label slot="start">100</ion-label>
+                <ion-label slot="end">1000</ion-label>
+              </ion-range>
+            </ion-row>
+          </ion-grid>
+        </ion-item>
+
+
+      <ion-item>
+        <ion-grid>
+          <ion-row>
+            <ion-col>
+              <ion-item lines="none">
+                <ion-checkbox slot="start" checked=true color="secondary"></ion-checkbox>
+                <ion-label>Electrical Conductivity</ion-label>
+              </ion-item>
+            </ion-col>
+            <ion-col>
+              <ion-item lines="none">
+                <ion-checkbox slot="start" checked=true color="secondary"></ion-checkbox>
+                <ion-label>Temperature</ion-label>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-item>
+
     </ion-card>
 
   </div>
@@ -40,26 +109,27 @@
         </ion-item>
       </ion-list>
     </ion-card>
--->
+
 
   <ion-card>
-      <form (ngSubmit)="sendData()">
-          <ion-grid>
-            <ion-row color="primary" justify-content-center>
-              <ion-col align-self-center size-md="6" size-lg="5" size-xs="12">
-                <div padding>
-                  <ion-item>
-                    <ion-input [(ngModel)]="dataOut" type="text" name="send"></ion-input>
-                  </ion-item>
-                </div>
-                <div padding>
-                  <ion-button  size="large" type="submit" expand="block">Send</ion-button>
-                </div>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </form>
+    <form (ngSubmit)="sendData()">
+      <ion-grid>
+        <ion-row color="primary" justify-content-center>
+          <ion-col align-self-center size-md="6" size-lg="5" size-xs="12">
+            <div padding>
+              <ion-item>
+                <ion-input [(ngModel)]="dataOut" type="text" name="send"></ion-input>
+              </ion-item>
+            </div>
+            <div padding>
+              <ion-button size="large" type="submit" expand="block">Send</ion-button>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </form>
   </ion-card>
+-->
 
 </ion-content>
 
