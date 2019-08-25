@@ -31,16 +31,16 @@
             <ion-col>
               <ion-item line="none">
                 <ion-label slot="start">
-                  Update Frequency (ms)
+                  Updates Per second
                 </ion-label>
                 <ion-badge slot="end" color="secondary">{{ updateFreqEC }}</ion-badge>
               </ion-item>
             </ion-col>
           </ion-row>
           <ion-row>
-            <ion-range debounce=100 pin=true min="100" max="1000" [(ngModel)]="updateFreqEC" color="secondary" (ionChange)="changeRateEC()">
-              <ion-label slot="start">100</ion-label>
-              <ion-label slot="end">1000</ion-label>
+            <ion-range debounce=20 pin=true  max="970" min="1"[(ngModel)]="updateFreqEC" color="secondary" (ionChange)="changeRateEC()" direction:rtl>
+              <ion-label slot="start">1</ion-label>
+              <ion-label slot="end">970</ion-label>
             </ion-range>
           </ion-row>
         </ion-grid>
@@ -53,16 +53,16 @@
               <ion-col>
                 <ion-item line="none">
                   <ion-label slot="start">
-                    Update Frequency (ms)
+                    Updates Per second
                   </ion-label>
                   <ion-badge slot="end" color="secondary">{{ updateFreqTemp }}</ion-badge>
                 </ion-item>
               </ion-col>
             </ion-row>
             <ion-row>
-              <ion-range debounce=100 pin=true min="100" max="1000" [(ngModel)]="updateFreqTemp" color="secondary" (ionChange)="changeRateTemp()">
-                <ion-label slot="start">100</ion-label>
-                <ion-label slot="end">1000</ion-label>
+              <ion-range debounce=20 pin=true  max="970" min="1"[(ngModel)]="updateFreqTemp" color="secondary" (ionChange)="changeRateTemp()" direction:rtl>
+                <ion-label slot="start">1</ion-label>
+                <ion-label slot="end">970</ion-label>
               </ion-range>
             </ion-row>
           </ion-grid>

@@ -33,7 +33,7 @@ export class GraphPage /*implements OnInit*/ {
       peripheral => this.onConnected(peripheral),
       peripheral => this.showAlert('Disconnected', 'Unable to Connect')     // navigate back to the home page
     );
-    this.updateFreqEC = 100;
+    this.updateFreqEC = 200;
     this.updateFreqTemp = 100;
     this.timer = '00:00:00';
   }
@@ -55,7 +55,7 @@ export class GraphPage /*implements OnInit*/ {
   timeStamp: any;
   date: any;
   updateFreqEC: number;
-  updateFreqTemp: number;
+  updateFreqTemp: number;  // clean all this up 
   timer: string;
 
   // tslint:disable-next-line: max-line-length
@@ -294,12 +294,12 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   stop() {
-    this.dataOut = 'stop';
+    this.dataOut = '#';
     this.sendData();
   }
 
   start() {
-    this.dataOut = 'start';
+    this.dataOut = '!';
     this.sendData();
     this.ecChart.destroy();
     this.count = 0; // replace with bluetooth data pipeline
@@ -364,21 +364,22 @@ export class GraphPage /*implements OnInit*/ {
 
   // prepend the attribute you want to change the logging updates of
   changeRateEC() {
-    this.dataOut = 'E' + this.updateFreqEC.toString();
+    const temp = 1001 - this.updateFreqEC;
+    console.log(temp);
+    // console.log(temp);
+    this.dataOut = 'E' + temp.toString();
     this.sendData();
   }
 
   changeRateTemp() {
-    this.dataOut = 'T' + this.updateFreqEC.toString();
+    const temp = 1001 - this.updateFreqEC;
+    this.dataOut = 'T' + temp.toString();
     this.sendData();
   }
 
   sendData() {
     const buffer = this.str2ab(this.dataOut);
-    this.ble.write(this.peripheral.id, UART_SERVICE, TX_CHARACTERISTIC, buffer).then(
-      () => this.showAlert('Success', 'Data sent'),
-      e => this.showAlert('Unexpected Error', 'Error sending data')
-    );
+    this.ble.write(this.peripheral.id, UART_SERVICE, TX_CHARACTERISTIC, buffer).then();
   }
 
 }
