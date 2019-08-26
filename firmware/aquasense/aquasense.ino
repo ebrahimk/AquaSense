@@ -28,12 +28,12 @@ void error(const __FlashStringHelper *err)
 
 unsigned long EC_timer = millis();
 uint16_t EC_timeout = 200;
-unsigned long temp_timer = millis();
 
 bool logData;
-double x = 0;
+
+double x = -50;
 int count = 0;
-double test = 0;
+
 
 /**************************************************************************/
 /*!
@@ -97,16 +97,19 @@ void loop(void)
   char n, dataOut[BUFSIZE + 1], dataIn[1028];
   clearMemory(dataOut);
   clearMemory(dataIn);
-
+  
+  // Check to send EC data
   if (millis() - EC_timer >= EC_timeout && logData)
   {
-    clearMemory(dataOut);
-    dtostrf(getSinc(x), 6, 6, dataOut);
+    dtostrf(getSinc(x), 4, 4, dataOut);
+    append(dataOut, '#');
+    dtostrf(cos(x)*4, 3, 3, dataOut + strlen(dataOut));
     addChksum(dataOut);
     printData(count, dataOut);
+    ble.println(dataOut);
+    
     count++;
     x += .2;
-    ble.println(dataOut);
     EC_timer = millis();
   }
 
@@ -130,8 +133,6 @@ void loop(void)
       sscanf(dataIn + 1, "%d", &EC_timeout);
       Serial.print("NEW TIMEOUT EC: ");
       Serial.println(EC_timeout);
-      break;
-    case 'T': // Temperature update rate
       break;
     }
   }

@@ -2,20 +2,21 @@
   <ion-header>
     <ion-toolbar>
       <ion-title>
-        {{ date }} - {{ timer }}
+        {{ date }} - {{ timer.min }}:{{ timer.sec}}.{{ timer.ms }}
       </ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <div class="ion-padding">
 
 
-    <ion-card>
-      <ion-card-content>
-        <canvas #lineEC></canvas>
-      </ion-card-content>
-    </ion-card>
-    <!--
+  <ion-card color="primary">
+    <ion-card-content>
+      <canvas #lineEC></canvas>
+    </ion-card-content>
+  </ion-card>
+  <!--
+    move graph update location to end of canvas
+    clean up search for BLE devices
     <ion-card>
       <ion-card-content>
         <canvas #lineTemp></canvas>
@@ -23,74 +24,44 @@
     </ion-card>
   -->
 
-    <ion-card>
+  <ion-card>
+    <ion-item color="primary" lines="none">
+      <ion-range debounce=20 pin=true max="970" min="1" [(ngModel)]="updateFreqEC" color="secondary"
+        (ionChange)="changeRateEC()" direction:rtl>
+        <ion-label slot="end" color="secondary">
+          <ion-badge slot="end" color="secondary">{{ updateFreqEC }}</ion-badge>
+        </ion-label>
+      </ion-range>
+    </ion-item>
+  </ion-card>
 
-      <ion-item lines="full">
-        <ion-grid>
-          <ion-row>
-            <ion-col>
-              <ion-item line="none">
-                <ion-label slot="start">
-                  Updates Per second
-                </ion-label>
-                <ion-badge slot="end" color="secondary">{{ updateFreqEC }}</ion-badge>
-              </ion-item>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-range debounce=20 pin=true  max="970" min="1"[(ngModel)]="updateFreqEC" color="secondary" (ionChange)="changeRateEC()" direction:rtl>
-              <ion-label slot="start">1</ion-label>
-              <ion-label slot="end">970</ion-label>
-            </ion-range>
-          </ion-row>
-        </ion-grid>
-      </ion-item>
+  <ion-card color=primary>
+    <ion-item color=primary text-center line="full">
+     <ion-label> {{ dataPt.type }} </ion-label>
+    </ion-item>
+    <ion-item color=primary line="full">
+      <ion-label style="font-weight: bold;">Time: </ion-label>
+      {{ dataPt.label }}
+    </ion-item>
+    <ion-item color=primary lines="none">
+      <ion-label style="font-weight: bold;">Value: </ion-label>
+      {{ dataPt.value }}
+    </ion-item>
+  </ion-card>
 
-
-      <ion-item lines="full">
-          <ion-grid>
-            <ion-row>
-              <ion-col>
-                <ion-item line="none">
-                  <ion-label slot="start">
-                    Updates Per second
-                  </ion-label>
-                  <ion-badge slot="end" color="secondary">{{ updateFreqTemp }}</ion-badge>
-                </ion-item>
-              </ion-col>
-            </ion-row>
-            <ion-row>
-              <ion-range debounce=20 pin=true  max="970" min="1"[(ngModel)]="updateFreqTemp" color="secondary" (ionChange)="changeRateTemp()" direction:rtl>
-                <ion-label slot="start">1</ion-label>
-                <ion-label slot="end">970</ion-label>
-              </ion-range>
-            </ion-row>
-          </ion-grid>
-        </ion-item>
+  <ion-card color="primary">
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          <ion-button color=secondary block (click)="disconnect()"> Exit <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card>
 
 
-      <ion-item>
-        <ion-grid>
-          <ion-row>
-            <ion-col>
-              <ion-item lines="none">
-                <ion-checkbox slot="start" checked=true color="secondary"></ion-checkbox>
-                <ion-label>Electrical Conductivity</ion-label>
-              </ion-item>
-            </ion-col>
-            <ion-col>
-              <ion-item lines="none">
-                <ion-checkbox slot="start" checked=true color="secondary"></ion-checkbox>
-                <ion-label>Temperature</ion-label>
-              </ion-item>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </ion-item>
 
-    </ion-card>
-
-  </div>
 
   <!--
   <ion-card>
@@ -133,16 +104,16 @@
 
 </ion-content>
 
-<ion-footer>
+<ion-footer color=medium>
   <ion-toolbar>
     <ion-grid>
-      <ion-row>
-        <ion-col align-self: center>
-          <ion-button block (click)="stop()"> Stop <ion-icon slot="end" name="square"></ion-icon>
+      <ion-row align-items: flex-start justify-content: center>
+        <ion-col>
+          <ion-button block color=secondary (click)="stop()"> Stop <ion-icon slot="end" name="square"></ion-icon>
           </ion-button>
         </ion-col>
-        <ion-col align-self: center>
-          <ion-button block (click)="start()"> Reset <ion-icon slot="end" name="play"></ion-icon>
+        <ion-col>
+          <ion-button block color=secondary (click)="start()"> Reset <ion-icon slot="end" name="play"></ion-icon>
           </ion-button>
         </ion-col>
       </ion-row>

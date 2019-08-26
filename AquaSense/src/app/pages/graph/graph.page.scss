@@ -1,3 +1,20 @@
-ion-card-content{
-    height: 60vh;
+@media screen and (orientation: portrait) {
+  ion-card-content {
+    height: 70vh;
+  }
+}
+
+@media screen and (orientation: landscape) {
+    ion-card-content {
+      height: 100vh;
+    }
+  }
+
+ion-row {
+  text-align: center;
+}
+
+ion-range {
+    --bar-background:#000000;
+    --bar-height: 4px;
 }

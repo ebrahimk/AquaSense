@@ -25,6 +25,7 @@ export class HomePage {
   gettingDevices: boolean;
   connection: any;
 
+
   testObj = {
     name: 'Battery Demo',
     id: '20:FF:D0:FF:D1:C0',

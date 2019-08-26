@@ -9,6 +9,8 @@ import { BLE } from '@ionic-native/ble/ngx';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { DataService } from './data-service.service';
+import { Chart } from 'chart.js';
+
 
 @NgModule({
   declarations: [AppComponent],
