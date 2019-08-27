@@ -4,18 +4,16 @@ jobs:
   build:
     docker:
       - image: circleci/android:api-28-node
-    working_directory: ~/AquaSense/AquaSense/
+    working_directory: ~/repo
     environment:
       JVM_OPTS: -Xmx3200m
     steps:
-      - checkout
+      - checkout:
+          path: "~/AquaSense"
       - run:
           name: "Install gradle"
           command: |
             pwd
-            ls
-            cd ./AquaSense
-            pwd 
             ls
             wget https://services.gradle.org/distributions/gradle-4.0.2-bin.zip -P /tmp
             sudo unzip -d /opt/gradle /tmp/gradle-*.zip
