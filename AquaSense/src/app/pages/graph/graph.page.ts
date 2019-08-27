@@ -37,7 +37,8 @@ export class GraphPage /*implements OnInit*/ {
     this.timer.sec = 0;
     this.timer.min = 0;
     this.timerId = setInterval(() => this.stopwatch(), 10);
-    this.fileWrite();
+    this.logger.isLogging = false;
+    this.logger.curFile = '';
   }
 
   @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
@@ -56,6 +57,7 @@ export class GraphPage /*implements OnInit*/ {
   timer: any = {};
   timerId: any;
   dataPt: any = {};
+  logger: any = {};
   count = -50;
 
   // tslint:disable-next-line: max-line-length
@@ -67,7 +69,7 @@ export class GraphPage /*implements OnInit*/ {
     this.timeStamp = new Date();
     chart.data.labels.push(moment(this.timeStamp).format('h:mm:ss.SSS'));
     datasets[0].data.push(data);
-    datasets[1].data.push(data*4);
+    datasets[1].data.push(data * 4);
     this.count += .2;
     chart.update();
   }
@@ -127,9 +129,13 @@ export class GraphPage /*implements OnInit*/ {
   // pass a variable lenth of CSV values, each value in the array gets pushed  ot the corresponding graph
   addData(chart, datasets: any, data) {
     this.timeStamp = new Date();
-    chart.data.labels.push(moment(this.timeStamp).format('h:mm:ss.SSS'));
+    const stamp = moment(this.timeStamp).format('h:mm:ss.SSS');
+    chart.data.labels.push(stamp);
     datasets[0].data.push(data.ec);
     datasets[1].data.push(data.temp);
+    if (this.logger.isLogging) {
+      this.fileAppend('AquaSense/logs/' + this.logger.curFile, stamp + '\t' + data.ec + '\t' + data.temp + '\n');
+    }
     chart.update();
   }
 
@@ -197,7 +203,7 @@ export class GraphPage /*implements OnInit*/ {
         ]
       },
       options: {
-        //responsive: true,
+        // responsive: true,
         maintainAspectRatio: false,
         legend: {
           display: true
@@ -254,7 +260,7 @@ export class GraphPage /*implements OnInit*/ {
   stop() {
     // clearInterval(this.timerIdec);
     // clearInterval(this.timerIdec2);
-
+    this.logger.isLogging = false;
     clearInterval(this.timerId);
     this.dataOut = '#';
     this.sendData();
@@ -330,21 +336,26 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   disconnect() {
+    this.logger.isLogging = false;
     this.ble.disconnect(this.peripheral.id).then(
       () => this.navCtrl.navigateRoot('/home'),
       () => this.navCtrl.navigateRoot('/home')
     );
   }
 
-
+  log() {
+    this.logger.curFile = moment(new Date()).format('DD_MM_YYYY_h:mm:ss_a') + '.txt';
+    this.fileWrite('AquaSense/Logs/' + this.logger.curFile);
+    this.logger.isLogging = true;
+  }
 
   // ###########################################
 
-  fileWrite() {
+  fileWrite(file: string) {
     try {
       Filesystem.writeFile({
-        path: 'secrets/text.txt',
-        data: 'This is a test',
+        path: file,
+        data: '',
         directory: FilesystemDirectory.Documents,
         encoding: FilesystemEncoding.UTF8
       });
@@ -355,17 +366,17 @@ export class GraphPage /*implements OnInit*/ {
 
   async fileRead() {
     const contents = await Filesystem.readFile({
-      path: 'secrets/text.txt',
+      path: 'AquaSense/Logs',
       directory: FilesystemDirectory.Documents,
       encoding: FilesystemEncoding.UTF8
     });
     console.log(contents);
   }
 
-  async fileAppend() {
+  async fileAppend(file: string, reading: string) {
     await Filesystem.appendFile({
-      path: 'secrets/text.txt',
-      data: 'MORE TESTS',
+      path: file,
+      data: reading,
       directory: FilesystemDirectory.Documents,
       encoding: FilesystemEncoding.UTF8
     });
