@@ -1,4 +1,3 @@
-/// <reference types='../../../../node_modules/@types/chart.js' />
 import { Component, ViewChild, ElementRef, NgZone, OnInit } from '@angular/core';
 import { NavController, ToastController } from '@ionic/angular';
 import { Chart } from 'chart.js';
@@ -45,7 +44,7 @@ export class GraphPage /*implements OnInit*/ {
   peripheral: any = {};
   statusMessage: string;
   dataOut: string;
-  dataIn: number;
+  dataIn: any = {};
   validData: boolean;
   timeStamp: any;
   dataRaw: string;
@@ -109,10 +108,18 @@ export class GraphPage /*implements OnInit*/ {
 
   parsePacket(buffer: string) {
     const temp = buffer.split('#');
-    this.dataIn = parseFloat(temp[0]);
-    this.addData(this.ecChart, this.ecChart.data.datasets[0], this.dataIn);
-    this.dataIn = parseFloat(temp[1]);
-    this.addData(this.ecChart, this.ecChart.data.datasets[1], this.dataIn);
+    this.dataIn.ec = parseFloat(temp[0]);
+    this.dataIn.temp = parseFloat(temp[1]);
+    this.addData(this.ecChart, this.ecChart.data.datasets, this.dataIn);
+  }
+
+  // pass a variable lenth of CSV values, each value in the array gets pushed  ot the corresponding graph
+  addData(chart, datasets: any, data) {
+    this.timeStamp = new Date();
+    chart.data.labels.push(moment(this.timeStamp).format('h:mm:ss.SSS'));
+    datasets[0].data.push(data.ec);
+    datasets[1].data.push(data.temp);
+    chart.update();
   }
 
   bytesToString(buffer) {
@@ -234,8 +241,8 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   stop() {
-   // clearInterval(this.timerIdec);
-   // clearInterval(this.timerIdec2);
+    // clearInterval(this.timerIdec);
+    // clearInterval(this.timerIdec2);
 
     clearInterval(this.timerId);
     this.dataOut = '#';
@@ -252,16 +259,6 @@ export class GraphPage /*implements OnInit*/ {
     this.ecChart.destroy();
     this.createGraph();
   }
-
-  // pass a variable lenth of CSV values, each value in the array gets pushed  ot the corresponding graph
-  addData(chart, dataset: any, data) {
-    this.timeStamp = new Date(); // .getMilliseconds().toLocaleString()
-    chart.data.labels.push(moment(this.timeStamp).format('h:mm:ss.SSS'));
-    // chart.data.datasets[0].data.push(data);
-    dataset.data.push(data);
-    chart.update();
-  }
-
 
   getRandomArbitrary(min, max) {
     return (Math.random() * (12 - 11) + 11).toFixed(4);
