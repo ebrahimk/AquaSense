@@ -3,7 +3,7 @@ version: 2
     build:
       docker:
         - image: circleci/android:api-28-node
-      working_directory: ~/repo
+      working_directory: ~/AquaSense
       environment:
         JVM_OPTS: -Xmx3200m
       steps:
