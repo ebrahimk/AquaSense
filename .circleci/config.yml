@@ -4,12 +4,11 @@ jobs:
   build:
     docker:
       - image: circleci/android:api-28-node
-    working_directory: ~/AquaSense
+    working_directory: ~/AquaSense/AquaSense/AquaSense
     environment:
       JVM_OPTS: -Xmx3200m
     steps:
-      - checkout:
-          path: "~/AquaSense/AquaSense"
+      - checkout
       - run:
           name: "Install gradle"
           command: |
