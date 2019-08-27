@@ -1,6 +1,6 @@
 <ion-header>
-  <ion-toolbar>
-    <ion-title>
+  <ion-toolbar color=medium>
+    <ion-title style="color:#45454d;font-weight: bold;">
       AquaSense
     </ion-title>
   </ion-toolbar>
@@ -21,14 +21,14 @@
 
 
 <ion-footer>
-  <ion-toolbar>
-      <ion-item padding lines=none>
+  <ion-toolbar >
+      <ion-item lines=none >
           <ion-button color=secondary size=medium slot=start block (click)="scan()"> scan <ion-icon slot="end" name="bluetooth"></ion-icon>
           </ion-button>
           <ion-spinner name="crescent" *ngIf="gettingDevices"></ion-spinner>
         </ion-item>
     <ion-button color=secondary block (click)="deviceSelectedTest()"> Graph <ion-icon slot="end" name="analytics"></ion-icon>
-    </ion-button>
+    </ion-button> 
   </ion-toolbar>
 </ion-footer>
 

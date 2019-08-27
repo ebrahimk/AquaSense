@@ -61,9 +61,11 @@ void setup(void)
       error(F("Couldn't factory reset"));
     }
   }
+  
 
   /* Disable command echo from Bluefruit */
   ble.echo(false);
+  ble.sendCommandCheckOK("AT+GAPDEVNAME=AquaSense");
 
   Serial.println("Requesting Bluefruit info:");
   ble.info();

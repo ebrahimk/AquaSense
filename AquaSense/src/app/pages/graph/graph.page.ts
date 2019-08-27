@@ -5,6 +5,8 @@ import { BLE } from '@ionic-native/ble/ngx';
 import { DataService } from '../../data-service.service';
 import * as moment from 'moment';
 import { crc16modbus } from 'crc';
+import { Capacitor, Plugins, FilesystemDirectory, FilesystemEncoding } from '@capacitor/core';
+const { Filesystem } = Plugins;
 
 const UART_SERVICE = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
 const RX_CHARACTERISTIC = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
@@ -35,6 +37,7 @@ export class GraphPage /*implements OnInit*/ {
     this.timer.sec = 0;
     this.timer.min = 0;
     this.timerId = setInterval(() => this.stopwatch(), 10);
+    this.fileWrite();
   }
 
   @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
@@ -56,10 +59,18 @@ export class GraphPage /*implements OnInit*/ {
   count = -50;
 
   // tslint:disable-next-line: max-line-length
-  // timerIdec = setInterval(() => this.addData(this.ecChart, this.ecChart.data.datasets[0], this.generateSinc(this.count)), 100);
+  // timerIdec = setInterval(() => this.addData2(this.ecChart, this.ecChart.data.datasets, this.generateSinc(this.count)), 100);
   // tslint:disable-next-line: max-line-length
   // timerIdec2 = setInterval(() => this.addData(this.ecChart, this.ecChart.data.datasets[1], this.generateSinc(this.count)), 100);
 
+  addData2(chart, datasets: any, data) {
+    this.timeStamp = new Date();
+    chart.data.labels.push(moment(this.timeStamp).format('h:mm:ss.SSS'));
+    datasets[0].data.push(data);
+    datasets[1].data.push(data*4);
+    this.count += .2;
+    chart.update();
+  }
 
 
   stopwatch() {
@@ -325,4 +336,102 @@ export class GraphPage /*implements OnInit*/ {
     );
   }
 
+
+
+  // ###########################################
+
+  fileWrite() {
+    try {
+      Filesystem.writeFile({
+        path: 'secrets/text.txt',
+        data: 'This is a test',
+        directory: FilesystemDirectory.Documents,
+        encoding: FilesystemEncoding.UTF8
+      });
+    } catch (e) {
+      console.error('Unable to write file', e);
+    }
+  }
+
+  async fileRead() {
+    const contents = await Filesystem.readFile({
+      path: 'secrets/text.txt',
+      directory: FilesystemDirectory.Documents,
+      encoding: FilesystemEncoding.UTF8
+    });
+    console.log(contents);
+  }
+
+  async fileAppend() {
+    await Filesystem.appendFile({
+      path: 'secrets/text.txt',
+      data: 'MORE TESTS',
+      directory: FilesystemDirectory.Documents,
+      encoding: FilesystemEncoding.UTF8
+    });
+  }
+
+  async fileDelete() {
+    await Filesystem.deleteFile({
+      path: 'secrets/text.txt',
+      directory: FilesystemDirectory.Documents
+    });
+  }
+
+  async mkdir() {
+    try {
+      const ret = await Filesystem.mkdir({
+        path: 'secrets',
+        directory: FilesystemDirectory.Documents,
+        createIntermediateDirectories: false // like mkdir -p
+      });
+    } catch (e) {
+      console.error('Unable to make directory', e);
+    }
+  }
+
+  async rmdir() {
+    try {
+      const ret = await Filesystem.rmdir({
+        path: 'secrets',
+        directory: FilesystemDirectory.Documents
+      });
+    } catch (e) {
+      console.error('Unable to remove directory', e);
+    }
+  }
+
+  async readdir() {
+    try {
+      const ret = await Filesystem.readdir({
+        path: 'secrets',
+        directory: FilesystemDirectory.Documents
+      });
+    } catch (e) {
+      console.error('Unable to read dir', e);
+    }
+  }
+
+  async stat() {
+    try {
+      const ret = await Filesystem.stat({
+        path: 'secrets/text.txt',
+        directory: FilesystemDirectory.Documents
+      });
+    } catch (e) {
+      console.error('Unable to stat file', e);
+    }
+  }
+
+  async rename() {
+    try {
+      const ret = await Filesystem.rename({
+        from: 'text.txt',
+        to: 'text2.txt',
+        directory: FilesystemDirectory.Documents
+      });
+    } catch (e) {
+      console.error('Unable to rename file', e);
+    }
+  }
 }
