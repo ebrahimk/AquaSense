@@ -26,7 +26,7 @@
 
   <ion-card>
     <ion-item color="primary" lines="none">
-      <ion-range debounce=20 pin=true max="970" min="1" [(ngModel)]="updateFreqEC" color="secondary"
+      <ion-range debounce=20 pin=true max="970" min="1" [(ngModel)]="updateFreqEC" 
         (ionChange)="changeRateEC()" direction:rtl>
         <ion-label slot="end" color="secondary">
           <ion-badge slot="end" color="secondary">{{ updateFreqEC }}</ion-badge>

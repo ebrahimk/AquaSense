@@ -15,6 +15,8 @@ ion-row {
 }
 
 ion-range {
-    --bar-background:#000000;
+    --bar-background: #ffffff;
+    --bar-background-active: #1da2d8;
+    --knob-background:#1da2d8;
     --bar-height: 4px;
 }

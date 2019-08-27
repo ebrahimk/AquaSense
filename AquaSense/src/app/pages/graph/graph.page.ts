@@ -253,6 +253,7 @@ export class GraphPage /*implements OnInit*/ {
     this.timer.ms = 0;
     this.timer.sec = 0;
     this.timer.min = 0;
+    clearInterval(this.timerId);
     this.timerId = setInterval(() => this.stopwatch(), 10);
     this.dataOut = '!';
     this.sendData();

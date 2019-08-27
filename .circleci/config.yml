@@ -13,8 +13,6 @@ jobs:
       - run:
           name: "Install gradle"
           command: |
-            pwd
-            ls
             wget https://services.gradle.org/distributions/gradle-4.0.2-bin.zip -P /tmp
             sudo unzip -d /opt/gradle /tmp/gradle-*.zip
             echo 'export GRADLE_HOME=/opt/gradle/gradle-4.0.2' >> $BASH_ENV
@@ -23,20 +21,14 @@ jobs:
       - run:
           name: "Install ionic and cordova"
           command: |
-            pwd
-            ls
-            sudo npm install -g ionic cordova yarn
+            sudo npm install -g ionic cordova yarn  
       - run:
           name: "Install npm packages"
           command: |
-            pwd
-            ls
-            yarn install
+            npm install
       - run:
           name: "Install Cordova plugins and add android platform"
           command: |
-            pwd
-            ls
             ionic cordova platform add android --noresources
             ionic config set -g telemetry true
       - run:

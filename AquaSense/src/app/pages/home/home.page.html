@@ -7,14 +7,6 @@
 </ion-header>
 
 <ion-content>
-
-  <ion-item padding lines=none>
-    <ion-button color=secondary size=medium slot=start block (click)="scan()"> scan <ion-icon slot="end" name="bluetooth"></ion-icon>
-    </ion-button>
-    <ion-spinner name="crescent" *ngIf="gettingDevices"></ion-spinner>
-  </ion-item>
-
-
   <ion-card >
     <ion-card-content>
       <ion-list >
@@ -30,6 +22,11 @@
 
 <ion-footer>
   <ion-toolbar>
+      <ion-item padding lines=none>
+          <ion-button color=secondary size=medium slot=start block (click)="scan()"> scan <ion-icon slot="end" name="bluetooth"></ion-icon>
+          </ion-button>
+          <ion-spinner name="crescent" *ngIf="gettingDevices"></ion-spinner>
+        </ion-item>
     <ion-button color=secondary block (click)="deviceSelectedTest()"> Graph <ion-icon slot="end" name="analytics"></ion-icon>
     </ion-button>
   </ion-toolbar>
