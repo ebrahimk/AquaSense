@@ -11,6 +11,7 @@ const { Filesystem } = Plugins;
 const UART_SERVICE = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
 const RX_CHARACTERISTIC = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
 const TX_CHARACTERISTIC = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E';
+const logsPath = 'AquaSense/Logs/';
 // tslint:disable-next-line: max-line-length
 
 @Component({
@@ -21,16 +22,16 @@ const TX_CHARACTERISTIC = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E';
 export class GraphPage /*implements OnInit*/ {
 
   constructor(public navCtrl: NavController,
-    private ble: BLE,
-    private toastCtrl: ToastController,
-    private ngZone: NgZone,
-    private dataService: DataService
+              private ble: BLE,
+              private toastCtrl: ToastController,
+              private ngZone: NgZone,
+              private dataService: DataService
   ) {
     this.date = moment(new Date()).format('DD/MM/YYYY');
     this.device = this.dataService.myParam.data;
     this.ble.connect(this.device.id).subscribe(
       peripheral => this.onConnected(peripheral),
-      peripheral => this.showAlert('Disconnected', 'Unable to Connect')     // navigate back to the home page
+      peripheral => this.showAlert('Disconnected', 'Unable to Connect')      // navigate back to the home page
     );
     this.updateFreqEC = 200;
     this.timer.ms = 0;
@@ -134,7 +135,7 @@ export class GraphPage /*implements OnInit*/ {
     datasets[0].data.push(data.ec);
     datasets[1].data.push(data.temp);
     if (this.logger.isLogging) {
-      this.fileAppend('AquaSense/logs/' + this.logger.curFile, stamp + '\t' + data.ec + '\t' + data.temp + '\n');
+      this.fileAppend(logsPath + this.logger.curFile, stamp + '\t' + data.ec + '\t' + data.temp + '\n');
     }
     chart.update();
   }
@@ -338,14 +339,14 @@ export class GraphPage /*implements OnInit*/ {
   disconnect() {
     this.logger.isLogging = false;
     this.ble.disconnect(this.peripheral.id).then(
-      () => this.navCtrl.navigateRoot('/home'),
-      () => this.navCtrl.navigateRoot('/home')
+      () => this.navCtrl.navigateRoot(''),
+      () => this.navCtrl.navigateRoot('')
     );
   }
 
   log() {
     this.logger.curFile = moment(new Date()).format('DD_MM_YYYY_h:mm:ss_a') + '.txt';
-    this.fileWrite('AquaSense/Logs/' + this.logger.curFile);
+    this.fileWrite(logsPath + this.logger.curFile);
     this.logger.isLogging = true;
   }
 
@@ -409,17 +410,6 @@ export class GraphPage /*implements OnInit*/ {
       });
     } catch (e) {
       console.error('Unable to remove directory', e);
-    }
-  }
-
-  async readdir() {
-    try {
-      const ret = await Filesystem.readdir({
-        path: 'secrets',
-        directory: FilesystemDirectory.Documents
-      });
-    } catch (e) {
-      console.error('Unable to read dir', e);
     }
   }
 

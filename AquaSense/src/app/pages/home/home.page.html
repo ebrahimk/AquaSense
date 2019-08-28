@@ -3,13 +3,16 @@
     <ion-title style="color:#45454d;font-weight: bold;">
       AquaSense
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-menu-button style="color:#45454d" autoHide="false"></ion-menu-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ion-card >
+<ion-content padding>
+  <ion-card>
     <ion-card-content>
-      <ion-list >
+      <ion-list>
         <ion-item button=true *ngFor="let device of devices" (click)="deviceSelected(device)">
           {{ device.name || 'Unnamed' }}: {{ device.rssi }} <ion-icon name="logo-rss"></ion-icon>
         </ion-item>
@@ -21,22 +24,15 @@
 
 
 <ion-footer>
-  <ion-toolbar >
-      <ion-item lines=none >
-          <ion-button color=secondary size=medium slot=start block (click)="scan()"> scan <ion-icon slot="end" name="bluetooth"></ion-icon>
-          </ion-button>
-          <ion-spinner name="crescent" *ngIf="gettingDevices"></ion-spinner>
-        </ion-item>
-    <ion-button color=secondary block (click)="deviceSelectedTest()"> Graph <ion-icon slot="end" name="analytics"></ion-icon>
-    </ion-button> 
+  <ion-toolbar>
+    <ion-item lines=none>
+      <ion-button color=secondary size=medium slot=start block (click)="scan()"> scan <ion-icon slot="end"
+          name="bluetooth"></ion-icon>
+      </ion-button>
+      <ion-spinner name="crescent" *ngIf="gettingDevices"></ion-spinner>
+    </ion-item>
+    <ion-button color=secondary block (click)="deviceSelectedTest()"> Graph <ion-icon slot="end" name="analytics">
+      </ion-icon>
+    </ion-button>
   </ion-toolbar>
 </ion-footer>
-
-<!--
-"deviceSelected(device)"
-
-
-    <button ion-button block (click)="disconnect()">Disconnect</button>
-   render new page after successfull connection
-   with a graph that spits out realy time data
- -->

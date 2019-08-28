@@ -121,12 +121,12 @@ export class HomePage {
   deviceSelected(device) {
     this.dataService.myParam = { data: device };
     // this.dataService.myParam = {data: this.testObj};
-    this.navCtrl.navigateRoot('/graph');
+    this.navCtrl.navigateRoot('/menu/graph');
   }
 
   deviceSelectedTest() {
     this.dataService.myParam = { data: this.testObj };
-    this.navCtrl.navigateRoot('/graph');
+    this.navCtrl.navigateRoot('/menu/graph');
   }
 
 
