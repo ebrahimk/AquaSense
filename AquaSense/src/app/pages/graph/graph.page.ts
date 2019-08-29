@@ -30,6 +30,7 @@ export class GraphPage {
               private dataService: DataService,
               public events: Events
   ) {
+    this.mkdir(logsPath);
     this.param.isLive = this.dataService.myParam.type;    // determines if the data on the graph was loaded or not
     events.subscribe('newLogs', () => {  // subscribe to new logs being generated from the graph module
       this.param.isLive = this.dataService.myParam.type;
@@ -354,7 +355,7 @@ export class GraphPage {
     if (this.logger.isLogging) {      // change color of button to RED TODO
       this.logger.color = 'warning';
       const date = moment(new Date());
-      this.logger.curFile = date.format('DD-MM-YYYY_h:mm:ss_a') + '.txt';
+      this.logger.curFile = date.format('DD-MM-YYYY_h-mm-ss_a') + '.txt';
       this.showAlert('Logging Data at ' + date.format('h:mm:ss_a'));
       this.fileWrite(logsPath + this.logger.curFile);
     } else {
@@ -397,12 +398,12 @@ export class GraphPage {
     });
   }
 
-  async mkdir() {
+  async mkdir(filePath: string) {
     try {
       const ret = await Filesystem.mkdir({
-        path: 'secrets',
+        path: filePath,
         directory: FilesystemDirectory.Documents,
-        createIntermediateDirectories: false // like mkdir -p
+        createIntermediateDirectories: true // like mkdir -p
       });
     } catch (e) {
       console.error('Unable to make directory', e);
@@ -443,3 +444,11 @@ export class GraphPage {
     }
   }
 }
+
+
+/*
+
+- create directories explicitly
+- add graph button
+
+*/
