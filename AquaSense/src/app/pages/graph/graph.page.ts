@@ -397,13 +397,6 @@ export class GraphPage {
     });
   }
 
-  async fileDelete() {
-    await Filesystem.deleteFile({
-      path: 'secrets/text.txt',
-      directory: FilesystemDirectory.Documents
-    });
-  }
-
   async mkdir() {
     try {
       const ret = await Filesystem.mkdir({

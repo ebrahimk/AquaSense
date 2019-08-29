@@ -50,7 +50,7 @@ export class MenuPage implements OnInit {
   load(log: string) {
     this.fileRead(logsPath + '/' + log).then(contents => {
       this.loadGraph(contents.data, log);
-       // this.showAlert('Unable to read file');
+      // this.showAlert('Unable to read file');
     });
   }
 
@@ -85,5 +85,20 @@ export class MenuPage implements OnInit {
       return ret;
     } catch (e) {
     }
+  }
+
+  delete(log: string) {
+    console.log("here");
+    console.log(logsPath + '/' + log);
+    this.fileDelete(logsPath + '/' + log).then(contents => {
+      this.events.publish('logs', 'data');
+    });
+  }
+
+  async fileDelete(filePath: string) {
+    await Filesystem.deleteFile({
+      path: filePath,
+      directory: FilesystemDirectory.Documents
+    });
   }
 }
