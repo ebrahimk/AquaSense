@@ -32,6 +32,7 @@ export class GraphPage {
   ) {
     this.param.isLive = this.dataService.myParam.type;    // determines if the data on the graph was loaded or not
     events.subscribe('newLogs', () => {  // subscribe to new logs being generated from the graph module
+      this.param.isLive = this.dataService.myParam.type;
       this.ecChart.destroy();
       this.createGraph();
       this.parseLog();
@@ -60,6 +61,7 @@ export class GraphPage {
   timerId: any;
   dataPt: any = {};
   logger: any = {};
+  playBtn: any = {};
 
   initLive() {
     this.device = this.dataService.myParam.data;
@@ -72,10 +74,12 @@ export class GraphPage {
     this.timer.ms = 0;
     this.timer.sec = 0;
     this.timer.min = 0;
-    this.timerId = setInterval(() => this.stopwatch(), 10);
     this.logger.isLogging = false;
     this.logger.curFile = '';
     this.logger.color = 'secondary';
+    this.playBtn.icon = 'play';
+    this.playBtn.isRunning = false;
+    this.playBtn.text = 'start';
   }
 
   parseLog() {
@@ -269,19 +273,30 @@ export class GraphPage {
   }
 
   stop() {
-    clearInterval(this.timerId);
-    this.dataOut = '#';
-    this.sendData();
+    this.playBtn.isRunning = !this.playBtn.isRunning;
+    if (this.playBtn.isRunning) {
+      this.timer.ms = 0;
+      this.timer.sec = 0;
+      this.timer.min = 0;
+      this.dataOut = '!';
+      this.sendData();
+      this.playBtn.icon = 'square';
+      this.playBtn.text = 'stop';
+      this.timerId = setInterval(() => this.stopwatch(), 10);
+    } else {
+      clearInterval(this.timerId);
+      this.dataOut = '#';
+      this.sendData();
+      this.playBtn.icon = 'play';
+      this.playBtn.text = 'start';
+    }
   }
+
 
   start() {
     this.timer.ms = 0;
     this.timer.sec = 0;
     this.timer.min = 0;
-    clearInterval(this.timerId);
-    this.timerId = setInterval(() => this.stopwatch(), 10);
-    this.dataOut = '!';
-    this.sendData();
     this.ecChart.destroy();
     this.createGraph();
   }
@@ -298,7 +313,6 @@ export class GraphPage {
     });
     await toast.present();
   }
-
 
   str2ab(str) {
     const buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
