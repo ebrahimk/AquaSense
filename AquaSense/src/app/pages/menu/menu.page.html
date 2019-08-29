@@ -2,14 +2,14 @@
   <ion-menu contentId ="content">
     <ion-header>
       <ion-toolbar>
-        <ion-title>Menu</ion-title>
+        <ion-title>Logs</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content>
       <ion-list *ngFor="let log of logs">
         <ion-menu-toggle auto-hide="false">
-          <ion-item routerDirection="forward" >
+          <ion-item button=true routerDirection="forward" (click)="load(log)">
              {{ log }}
           </ion-item>
         </ion-menu-toggle>

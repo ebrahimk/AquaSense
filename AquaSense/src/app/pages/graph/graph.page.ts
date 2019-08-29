@@ -5,7 +5,9 @@ import { BLE } from '@ionic-native/ble/ngx';
 import { DataService } from '../../data-service.service';
 import * as moment from 'moment';
 import { crc16modbus } from 'crc';
-import { Capacitor, Plugins, FilesystemDirectory, FilesystemEncoding } from '@capacitor/core';
+import { Plugins, FilesystemDirectory, FilesystemEncoding } from '@capacitor/core';
+import { Events } from '@ionic/angular';
+
 const { Filesystem } = Plugins;
 
 const UART_SERVICE = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
@@ -25,29 +27,22 @@ export class GraphPage /*implements OnInit*/ {
               private ble: BLE,
               private toastCtrl: ToastController,
               private ngZone: NgZone,
-              private dataService: DataService
+              private dataService: DataService,
+              public events: Events
   ) {
-    this.date = moment(new Date()).format('DD/MM/YYYY');
-    this.device = this.dataService.myParam.data;
-    this.ble.connect(this.device.id).subscribe(
-      peripheral => this.onConnected(peripheral),
-      peripheral => this.showAlert('Disconnected', 'Unable to Connect')      // navigate back to the home page
-    );
-    this.updateFreqEC = 200;
-    this.timer.ms = 0;
-    this.timer.sec = 0;
-    this.timer.min = 0;
-    this.timerId = setInterval(() => this.stopwatch(), 10);
-    this.logger.isLogging = false;
-    this.logger.curFile = '';
+    // edit this line to check if it is logged data or not
+    this.param.isLive = this.dataService.myParam.type;    // determines if the data on the graph was loaded or not
+    this.init();
   }
 
   @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
 
   device: any;
+  param: any = {};  // parameters passed to the module, device should be nested under this as well
+  loadContents: any = {};
+
   ecChart: Chart;
   peripheral: any = {};
-  statusMessage: string;
   dataOut: string;
   dataIn: any = {};
   validData: boolean;
@@ -65,6 +60,40 @@ export class GraphPage /*implements OnInit*/ {
   // timerIdec = setInterval(() => this.addData2(this.ecChart, this.ecChart.data.datasets, this.generateSinc(this.count)), 100);
   // tslint:disable-next-line: max-line-length
   // timerIdec2 = setInterval(() => this.addData(this.ecChart, this.ecChart.data.datasets[1], this.generateSinc(this.count)), 100);
+
+  init() {
+    if (this.param.isLive) {
+      this.device = this.dataService.myParam.data;
+      this.date = moment(new Date()).format('DD/MM/YYYY');
+      this.ble.connect(this.device.id).subscribe(
+        peripheral => this.onConnected(peripheral),
+        peripheral => this.showAlert('Unable to Connect')      // navigate back to the home page
+      );
+      this.updateFreqEC = 200;
+      this.timer.ms = 0;
+      this.timer.sec = 0;
+      this.timer.min = 0;
+      this.timerId = setInterval(() => this.stopwatch(), 10);
+      this.logger.isLogging = false;
+      this.logger.curFile = '';
+      this.logger.color = 'secondary';
+    } else {  // the graph page will load logged data file
+      this.param.stamp = this.dataService.myParam.stamp;
+      this.param.data = this.dataService.myParam.data;
+      console.log('here');
+    }
+  }
+
+  parseLog() {
+    const temp = this.param.data.split('\n');
+    temp.forEach(element => {
+      const data = element.split(',');
+      this.ecChart.data.labels.push(data[0]);
+      this.ecChart.data.datasets[0].data.push(parseFloat(data[1]));
+      this.ecChart.data.datasets[1].data.push(parseFloat(data[2]));
+    });
+    this.ecChart.update();
+  }
 
   addData2(chart, datasets: any, data) {
     this.timeStamp = new Date();
@@ -93,7 +122,7 @@ export class GraphPage /*implements OnInit*/ {
     this.peripheral = peripheral;
     this.ble.startNotification(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).subscribe(
       data => this.onDataChage(data),
-      () => this.showAlert('Unexpected Error', 'Failed to subscribe for temperature changes')
+      () => this.showAlert('Failed to subscribe for temperature changes')
     );
   }
 
@@ -103,11 +132,6 @@ export class GraphPage /*implements OnInit*/ {
     if (this.validData) {           // check for data type
       this.parsePacket(chksum);
     }
-    /*
-        this.ngZone.run(() => {
-          this.temperature = data[0];
-        });
-    */
   }
 
   verifyChksum(buffer: string) {
@@ -135,7 +159,7 @@ export class GraphPage /*implements OnInit*/ {
     datasets[0].data.push(data.ec);
     datasets[1].data.push(data.temp);
     if (this.logger.isLogging) {
-      this.fileAppend(logsPath + this.logger.curFile, stamp + '\t' + data.ec + '\t' + data.temp + '\n');
+      this.fileAppend(logsPath + this.logger.curFile, stamp + ',' + data.ec + ',' + data.temp + '\n');
     }
     chart.update();
   }
@@ -147,6 +171,9 @@ export class GraphPage /*implements OnInit*/ {
   // tslint:disable-next-line: use-lifecycle-interface
   ngAfterViewInit() {
     this.createGraph();
+    if (!this.param.isLive) {
+      this.parseLog();
+    }
   }
 
   createGraph() {
@@ -261,7 +288,6 @@ export class GraphPage /*implements OnInit*/ {
   stop() {
     // clearInterval(this.timerIdec);
     // clearInterval(this.timerIdec2);
-    this.logger.isLogging = false;
     clearInterval(this.timerId);
     this.dataOut = '#';
     this.sendData();
@@ -289,15 +315,7 @@ export class GraphPage /*implements OnInit*/ {
     return ((Math.sin(x) * 3.14) / (3.14 * x));
   }
 
-
-  setStatus(message) {
-    console.log(message);
-    this.ngZone.run(() => {
-      this.statusMessage = message;
-    });
-  }
-
-  async showAlert(peripheral, notification) {
+  async showAlert(notification) {
     const toast = await this.toastCtrl.create({
       message: notification,
       duration: 3000,
@@ -345,9 +363,18 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   log() {
-    this.logger.curFile = moment(new Date()).format('DD_MM_YYYY_h:mm:ss_a') + '.txt';
-    this.fileWrite(logsPath + this.logger.curFile);
-    this.logger.isLogging = true;
+    this.logger.isLogging = !this.logger.isLogging;
+    if (this.logger.isLogging) {      // change color of button to RED TODO
+      this.logger.color = 'warning';
+      const date = moment(new Date());
+      this.logger.curFile = moment(date.format('DD-MM-YYYY_h:mm:ss_a') + '.txt');
+      this.showAlert('Logging Data at ' + date.format('h:mm:ss_a'));
+      this.fileWrite(logsPath + this.logger.curFile);
+      this.events.publish('logs', 'data');
+    } else {
+      this.showAlert('Log Saved');
+      this.logger.color = 'secondary';
+    }
   }
 
   // ###########################################

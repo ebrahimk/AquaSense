@@ -1,9 +1,12 @@
 <ion-content color="primary">
   <ion-header>
     <ion-toolbar color=medium>
-      <ion-title style="color:#45454d">
+      <ion-title *ngIf="param.isLive" style="color:#45454d">
         {{ date }} - {{ timer.min }}:{{ timer.sec}}.{{ timer.ms }}
       </ion-title>
+      <ion-title *ngIf="!param.isLive" style="color:#45454d">
+         {{ this.param.stamp }}
+        </ion-title>
       <ion-buttons slot="end">
         <ion-menu-button style="color:#45454d" autoHide="false"></ion-menu-button>
       </ion-buttons>
@@ -27,7 +30,7 @@
       </ion-card>
     -->
 
-  <ion-card color=light>
+  <ion-card *ngIf="param.isLive" color=light>
     <ion-item lines="none">
       <ion-range color=secondary debounce=20 pin=true max="970" min="1" [(ngModel)]="updateFreqEC"
         (ionChange)="changeRateEC()" direction:rtl>
@@ -57,58 +60,15 @@
     <ion-grid>
       <ion-row>
         <ion-col>
-          <ion-button color=warning block (click)="disconnect()"> Disconnect <ion-icon name="close"></ion-icon>
+          <ion-button color=warning block (click)="disconnect()"> Exit <ion-icon name="close"></ion-icon>
           </ion-button>
         </ion-col>
       </ion-row>
     </ion-grid>
   </ion-card>
-
-
-
-
-  <!--
-    <ion-card>
-      <ion-list padding>
-        <ion-item  *ngFor="let characteristic of device.characteristics" >
-          {{ characteristic.service }} : {{ characteristic.characteristic }} 
-        </ion-item>
-      </ion-list>
-    </ion-card>
-  
-  
-    <ion-card>
-        <ion-list padding>
-          <ion-item  *ngFor="let services of device.services" >
-            {{ services }} 
-          </ion-item>
-        </ion-list>
-      </ion-card>
-  
-  
-    <ion-card>
-      <form (ngSubmit)="sendData()">
-        <ion-grid>
-          <ion-row color="primary" justify-content-center>
-            <ion-col align-self-center size-md="6" size-lg="5" size-xs="12">
-              <div padding>
-                <ion-item>
-                  <ion-input [(ngModel)]="dataOut" type="text" name="send"></ion-input>
-                </ion-item>
-              </div>
-              <div padding>
-                <ion-button size="large" type="submit" expand="block">Send</ion-button>
-              </div>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </form>
-    </ion-card>
-  -->
-
 </ion-content>
 
-<ion-footer>
+<ion-footer *ngIf="param.isLive">
   <ion-toolbar>
     <ion-grid>
       <ion-row align-items: flex-start justify-content: center>
@@ -123,7 +83,7 @@
           </ion-button>
         </ion-col>
         <ion-col>
-          <ion-button size="small" block (click)="log()"> Log <ion-icon name="save"></ion-icon>
+          <ion-button size="small" block color= "{{logger.color}}" (click)="log()"> Log <ion-icon name="save"></ion-icon>
           </ion-button>
         </ion-col>
       </ion-row>
