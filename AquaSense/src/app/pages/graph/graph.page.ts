@@ -14,14 +14,14 @@ const UART_SERVICE = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
 const RX_CHARACTERISTIC = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
 const TX_CHARACTERISTIC = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E';
 const logsPath = 'AquaSense/Logs/';
-// tslint:disable-next-line: max-line-length
 
 @Component({
   selector: 'app-graph',
   templateUrl: './graph.page.html',
   styleUrls: ['./graph.page.scss'],
 })
-export class GraphPage /*implements OnInit*/ {
+
+export class GraphPage {
 
   constructor(public navCtrl: NavController,
               private ble: BLE,
@@ -30,9 +30,15 @@ export class GraphPage /*implements OnInit*/ {
               private dataService: DataService,
               public events: Events
   ) {
-    // edit this line to check if it is logged data or not
     this.param.isLive = this.dataService.myParam.type;    // determines if the data on the graph was loaded or not
-    this.init();
+    events.subscribe('newLogs', () => {  // subscribe to new logs being generated from the graph module
+      this.ecChart.destroy();
+      this.createGraph();
+      this.parseLog();
+    });
+    if (this.param.isLive) {
+      this.initLive();
+    }
   }
 
   @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
@@ -54,37 +60,27 @@ export class GraphPage /*implements OnInit*/ {
   timerId: any;
   dataPt: any = {};
   logger: any = {};
-  count = -50;
 
-  // tslint:disable-next-line: max-line-length
-  // timerIdec = setInterval(() => this.addData2(this.ecChart, this.ecChart.data.datasets, this.generateSinc(this.count)), 100);
-  // tslint:disable-next-line: max-line-length
-  // timerIdec2 = setInterval(() => this.addData(this.ecChart, this.ecChart.data.datasets[1], this.generateSinc(this.count)), 100);
-
-  init() {
-    if (this.param.isLive) {
-      this.device = this.dataService.myParam.data;
-      this.date = moment(new Date()).format('DD/MM/YYYY');
-      this.ble.connect(this.device.id).subscribe(
-        peripheral => this.onConnected(peripheral),
-        peripheral => this.showAlert('Unable to Connect')      // navigate back to the home page
-      );
-      this.updateFreqEC = 200;
-      this.timer.ms = 0;
-      this.timer.sec = 0;
-      this.timer.min = 0;
-      this.timerId = setInterval(() => this.stopwatch(), 10);
-      this.logger.isLogging = false;
-      this.logger.curFile = '';
-      this.logger.color = 'secondary';
-    } else {  // the graph page will load logged data file
-      this.param.stamp = this.dataService.myParam.stamp;
-      this.param.data = this.dataService.myParam.data;
-      console.log('here');
-    }
+  initLive() {
+    this.device = this.dataService.myParam.data;
+    this.date = moment(new Date()).format('DD/MM/YYYY');
+    this.ble.connect(this.device.id).subscribe(
+      peripheral => this.onConnected(peripheral),
+      peripheral => this.showAlert('Unable to Connect')      // navigate back to the home page
+    );
+    this.updateFreqEC = 200;
+    this.timer.ms = 0;
+    this.timer.sec = 0;
+    this.timer.min = 0;
+    this.timerId = setInterval(() => this.stopwatch(), 10);
+    this.logger.isLogging = false;
+    this.logger.curFile = '';
+    this.logger.color = 'secondary';
   }
 
   parseLog() {
+    this.param.stamp = this.dataService.myParam.stamp;
+    this.param.data = this.dataService.myParam.data;
     const temp = this.param.data.split('\n');
     temp.forEach(element => {
       const data = element.split(',');
@@ -93,17 +89,8 @@ export class GraphPage /*implements OnInit*/ {
       this.ecChart.data.datasets[1].data.push(parseFloat(data[2]));
     });
     this.ecChart.update();
+    console.log('update');
   }
-
-  addData2(chart, datasets: any, data) {
-    this.timeStamp = new Date();
-    chart.data.labels.push(moment(this.timeStamp).format('h:mm:ss.SSS'));
-    datasets[0].data.push(data);
-    datasets[1].data.push(data * 4);
-    this.count += .2;
-    chart.update();
-  }
-
 
   stopwatch() {
     this.timer.ms++;
@@ -118,7 +105,6 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   onConnected(peripheral) {
-    // Subscribe to the observable for notifications
     this.peripheral = peripheral;
     this.ble.startNotification(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).subscribe(
       data => this.onDataChage(data),
@@ -171,9 +157,6 @@ export class GraphPage /*implements OnInit*/ {
   // tslint:disable-next-line: use-lifecycle-interface
   ngAfterViewInit() {
     this.createGraph();
-    if (!this.param.isLive) {
-      this.parseLog();
-    }
   }
 
   createGraph() {
@@ -286,8 +269,6 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   stop() {
-    // clearInterval(this.timerIdec);
-    // clearInterval(this.timerIdec2);
     clearInterval(this.timerId);
     this.dataOut = '#';
     this.sendData();
@@ -307,12 +288,6 @@ export class GraphPage /*implements OnInit*/ {
 
   getRandomArbitrary(min, max) {
     return (Math.random() * (12 - 11) + 11).toFixed(4);
-  }
-
-
-  generateSinc(x) {
-    this.count += .2;
-    return ((Math.sin(x) * 3.14) / (3.14 * x));
   }
 
   async showAlert(notification) {
@@ -337,8 +312,6 @@ export class GraphPage /*implements OnInit*/ {
   // prepend the attribute you want to change the logging updates of
   changeRateEC() {
     const temp = 1001 - this.updateFreqEC;
-    console.log(temp);
-    // console.log(temp);
     this.dataOut = 'E' + temp.toString();
     this.sendData();
   }
@@ -367,13 +340,13 @@ export class GraphPage /*implements OnInit*/ {
     if (this.logger.isLogging) {      // change color of button to RED TODO
       this.logger.color = 'warning';
       const date = moment(new Date());
-      this.logger.curFile = moment(date.format('DD-MM-YYYY_h:mm:ss_a') + '.txt');
+      this.logger.curFile = date.format('DD-MM-YYYY_h:mm:ss_a') + '.txt';
       this.showAlert('Logging Data at ' + date.format('h:mm:ss_a'));
       this.fileWrite(logsPath + this.logger.curFile);
-      this.events.publish('logs', 'data');
     } else {
       this.showAlert('Log Saved');
       this.logger.color = 'secondary';
+      this.events.publish('logs', 'data');
     }
   }
 

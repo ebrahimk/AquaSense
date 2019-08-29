@@ -23,7 +23,7 @@ export class MenuPage implements OnInit {
               public navCtrl: NavController,
               public events: Events) {
     this.update();
-    events.subscribe('logs', () => {
+    events.subscribe('logs', () => {  // subscribe to new logs being generated from the graph module
       this.update();
     });
   }
@@ -48,21 +48,20 @@ export class MenuPage implements OnInit {
 
   // load the selected log
   load(log: string) {
-    // this.loadGraph('1:34:32.255,0.0334,1.93\n1:34:32.293,0.0293,2.588\n1:34:32.323,0.024,3.142\n1:34:32.335,0.0176,3.571', log);
     this.fileRead(logsPath + '/' + log).then(contents => {
-      this.loadGraph(contents.data, log),
-       this.showAlert('Unable to read file');
+      this.loadGraph(contents.data, log);
+       // this.showAlert('Unable to read file');
     });
   }
-  // I  think this may be bubbling down
 
   // pass the data contained in the file to the graph page
   loadGraph(contents: string, time: string) {
     this.dataService.myParam = {
       data: contents,
       type: false,
-      stamp: time     // pass the file names
-    };     // indicating that this is a loaded screen
+      stamp: time
+    };
+    this.events.publish('newLogs', 'data');
     this.router.navigate(['/menu/graph']);
   }
 
@@ -88,9 +87,3 @@ export class MenuPage implements OnInit {
     }
   }
 }
-
-
-/*
-  Add delete functionality from the menu
-  Make the logging button change colors when clicked
-*/

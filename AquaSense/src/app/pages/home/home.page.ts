@@ -1,6 +1,5 @@
 import { BLE } from '@ionic-native/ble/ngx';
 import { Component, NgZone } from '@angular/core';
-import { NavController } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
 import { DataService } from '../../data-service.service';
 import { Router } from '@angular/router';
