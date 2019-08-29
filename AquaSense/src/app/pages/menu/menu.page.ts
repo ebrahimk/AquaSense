@@ -88,7 +88,6 @@ export class MenuPage implements OnInit {
   }
 
   delete(log: string) {
-    console.log("here");
     console.log(logsPath + '/' + log);
     this.fileDelete(logsPath + '/' + log).then(contents => {
       this.events.publish('logs', 'data');

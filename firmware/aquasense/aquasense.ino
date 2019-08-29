@@ -70,10 +70,6 @@ void setup(void)
   Serial.println("Requesting Bluefruit info:");
   ble.info();
   ble.verbose(false); // debug info is a little annoying after this point!
-  while (!ble.isConnected())
-  {
-    delay(500);
-  }
 
   Serial.println(F("******************************"));
 
@@ -91,7 +87,7 @@ void setup(void)
 
   Serial.println(F("******************************"));
 
-  logData = true;
+  logData = false;
 }
 
 void loop(void)
