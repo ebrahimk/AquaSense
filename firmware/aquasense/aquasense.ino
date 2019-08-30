@@ -29,6 +29,7 @@
 #define VBATPIN A7
 #define ONE_WIRE_BUS 11 
 #define EC_PIN A0
+#define LEDPIN 6
 
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
@@ -37,7 +38,7 @@ DallasTemperature sensors(&oneWire);
 DeviceAddress insideThermometer;
 
 unsigned long EC_timer = millis();
-uint16_t EC_timeout = 200;
+uint16_t EC_timeout = 1000;
 bool logData;
 float voltage,ecValue,temperature = 25;
 DFRobot_EC ec;
@@ -45,6 +46,8 @@ int count = 0;
 
 void setup(void)
 {
+  pinMode(LEDPIN, OUTPUT);
+  digitalWrite(LEDPIN, HIGH);
   Serial.begin(115200);
   if (!ble.begin(VERBOSE_MODE))
   {
@@ -93,6 +96,7 @@ void setup(void)
 
   // set the resolution to 12 bit (Each Dallas/Maxim device is capable of several different resolutions)
   sensors.setResolution(insideThermometer, 12);
+
 }
 
 void loop(void)

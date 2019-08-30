@@ -235,7 +235,7 @@ export class GraphPage {
             position: 'left',
             scaleLabel: {
               display: true,
-              labelString: 'Electrical Conductivity (1/Ω)'
+              labelString: 'Electrical Conductivity (mS/cm)'
             }
           }, {
             id: 'B',
