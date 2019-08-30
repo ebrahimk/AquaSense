@@ -39,6 +39,11 @@ DeviceAddress insideThermometer;
 
 unsigned long EC_timer = millis();
 uint16_t EC_timeout = 1000;
+unsigned long bat_timer = millis();
+unsigned long poll_timer = millis(); 
+uint16_t bat_timeout = 500;
+bool LED_on = true;
+bool low_bat; 
 bool logData;
 float voltage,ecValue,temperature = 25;
 DFRobot_EC ec;
@@ -118,6 +123,16 @@ void loop(void)
     EC_timer = millis();
   }
 
+  if (millis() - bat_timer >= bat_timeout && low_bat)
+  {
+    if(LED_on)
+      digitalWrite(LEDPIN, LOW);
+    else
+       digitalWrite(LEDPIN, HIGH);
+    LED_on = !LED_on;
+    bat_timer = millis();
+  }
+
   // Echo received data
   if (ble.available())
   {
@@ -142,6 +157,12 @@ void loop(void)
     }
   }
   ec.calibration(voltage,temperature);  // calibration process by Serail CMD
+
+  // read the battery voltage and set LED blinking behavior
+  if(millis() - poll_timer >= 2000){
+      readBat();
+      poll_timer = millis();
+  }
 }
 
 void error(const __FlashStringHelper *err)
@@ -214,4 +235,15 @@ void printData(int count, char *data)
   Serial.print(count);
   Serial.print(": ");
   Serial.println(data);
+}
+
+void readBat(){
+  float measuredvbat = analogRead(VBATPIN);
+  measuredvbat *= 2;    // we divided by 2, so multiply back
+  measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+  measuredvbat /= 1024; // convert to voltage
+  if(measuredvbat < 3.5)
+    low_bat = true;
+  else
+    low_bat = false;
 }
