@@ -5,49 +5,52 @@ import { BLE } from '@ionic-native/ble/ngx';
 import { DataService } from '../../data-service.service';
 import * as moment from 'moment';
 import { crc16modbus } from 'crc';
-import { Capacitor, Plugins, FilesystemDirectory, FilesystemEncoding } from '@capacitor/core';
+import { Plugins, FilesystemDirectory, FilesystemEncoding } from '@capacitor/core';
+import { Events } from '@ionic/angular';
+
 const { Filesystem } = Plugins;
 
 const UART_SERVICE = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
 const RX_CHARACTERISTIC = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
 const TX_CHARACTERISTIC = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E';
 const logsPath = 'AquaSense/Logs/';
-// tslint:disable-next-line: max-line-length
 
 @Component({
   selector: 'app-graph',
   templateUrl: './graph.page.html',
   styleUrls: ['./graph.page.scss'],
 })
-export class GraphPage /*implements OnInit*/ {
+
+export class GraphPage {
 
   constructor(public navCtrl: NavController,
               private ble: BLE,
               private toastCtrl: ToastController,
               private ngZone: NgZone,
-              private dataService: DataService
+              private dataService: DataService,
+              public events: Events
   ) {
-    this.date = moment(new Date()).format('DD/MM/YYYY');
-    this.device = this.dataService.myParam.data;
-    this.ble.connect(this.device.id).subscribe(
-      peripheral => this.onConnected(peripheral),
-      peripheral => this.showAlert('Disconnected', 'Unable to Connect')      // navigate back to the home page
-    );
-    this.updateFreqEC = 200;
-    this.timer.ms = 0;
-    this.timer.sec = 0;
-    this.timer.min = 0;
-    this.timerId = setInterval(() => this.stopwatch(), 10);
-    this.logger.isLogging = false;
-    this.logger.curFile = '';
+    this.mkdir(logsPath);
+    this.param.isLive = this.dataService.myParam.type;    // determines if the data on the graph was loaded or not
+    events.subscribe('newLogs', () => {  // subscribe to new logs being generated from the graph module
+      this.param.isLive = this.dataService.myParam.type;
+      this.ecChart.destroy();
+      this.createGraph();
+      this.parseLog();
+    });
+    if (this.param.isLive) {
+      this.initLive();
+    }
   }
 
   @ViewChild('lineEC', { static: false }) lineCanvasEC: ElementRef;
 
   device: any;
+  param: any = {};  // parameters passed to the module, device should be nested under this as well
+  loadContents: any = {};
+
   ecChart: Chart;
   peripheral: any = {};
-  statusMessage: string;
   dataOut: string;
   dataIn: any = {};
   validData: boolean;
@@ -59,22 +62,40 @@ export class GraphPage /*implements OnInit*/ {
   timerId: any;
   dataPt: any = {};
   logger: any = {};
-  count = -50;
+  playBtn: any = {};
 
-  // tslint:disable-next-line: max-line-length
-  // timerIdec = setInterval(() => this.addData2(this.ecChart, this.ecChart.data.datasets, this.generateSinc(this.count)), 100);
-  // tslint:disable-next-line: max-line-length
-  // timerIdec2 = setInterval(() => this.addData(this.ecChart, this.ecChart.data.datasets[1], this.generateSinc(this.count)), 100);
-
-  addData2(chart, datasets: any, data) {
-    this.timeStamp = new Date();
-    chart.data.labels.push(moment(this.timeStamp).format('h:mm:ss.SSS'));
-    datasets[0].data.push(data);
-    datasets[1].data.push(data * 4);
-    this.count += .2;
-    chart.update();
+  initLive() {
+    this.device = this.dataService.myParam.data;
+    this.date = moment(new Date()).format('DD/MM/YYYY');
+    this.ble.connect(this.device.id).subscribe(
+      peripheral => this.onConnected(peripheral),
+      peripheral => this.showAlert('Unable to Connect')      // navigate back to the home page
+    );
+    this.updateFreqEC = 200;
+    this.timer.ms = 0;
+    this.timer.sec = 0;
+    this.timer.min = 0;
+    this.logger.isLogging = false;
+    this.logger.curFile = '';
+    this.logger.color = 'secondary';
+    this.playBtn.icon = 'play';
+    this.playBtn.isRunning = false;
+    this.playBtn.text = 'start';
   }
 
+  parseLog() {
+    this.param.stamp = this.dataService.myParam.stamp;
+    this.param.data = this.dataService.myParam.data;
+    const temp = this.param.data.split('\n');
+    temp.forEach(element => {
+      const data = element.split(',');
+      this.ecChart.data.labels.push(data[0]);
+      this.ecChart.data.datasets[0].data.push(parseFloat(data[1]));
+      this.ecChart.data.datasets[1].data.push(parseFloat(data[2]));
+    });
+    this.ecChart.update();
+    console.log('update');
+  }
 
   stopwatch() {
     this.timer.ms++;
@@ -89,11 +110,10 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   onConnected(peripheral) {
-    // Subscribe to the observable for notifications
     this.peripheral = peripheral;
     this.ble.startNotification(this.peripheral.id, UART_SERVICE, RX_CHARACTERISTIC).subscribe(
       data => this.onDataChage(data),
-      () => this.showAlert('Unexpected Error', 'Failed to subscribe for temperature changes')
+      () => this.showAlert('Failed to subscribe for temperature changes')
     );
   }
 
@@ -103,11 +123,6 @@ export class GraphPage /*implements OnInit*/ {
     if (this.validData) {           // check for data type
       this.parsePacket(chksum);
     }
-    /*
-        this.ngZone.run(() => {
-          this.temperature = data[0];
-        });
-    */
   }
 
   verifyChksum(buffer: string) {
@@ -135,7 +150,7 @@ export class GraphPage /*implements OnInit*/ {
     datasets[0].data.push(data.ec);
     datasets[1].data.push(data.temp);
     if (this.logger.isLogging) {
-      this.fileAppend(logsPath + this.logger.curFile, stamp + '\t' + data.ec + '\t' + data.temp + '\n');
+      this.fileAppend(logsPath + this.logger.curFile, stamp + ',' + data.ec + ',' + data.temp + '\n');
     }
     chart.update();
   }
@@ -220,7 +235,7 @@ export class GraphPage /*implements OnInit*/ {
             position: 'left',
             scaleLabel: {
               display: true,
-              labelString: 'Electrical Conductivity (1/Ω)'
+              labelString: 'Electrical Conductivity (mS/cm)'
             }
           }, {
             id: 'B',
@@ -259,22 +274,30 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   stop() {
-    // clearInterval(this.timerIdec);
-    // clearInterval(this.timerIdec2);
-    this.logger.isLogging = false;
-    clearInterval(this.timerId);
-    this.dataOut = '#';
-    this.sendData();
+    this.playBtn.isRunning = !this.playBtn.isRunning;
+    if (this.playBtn.isRunning) {
+      this.timer.ms = 0;
+      this.timer.sec = 0;
+      this.timer.min = 0;
+      this.dataOut = '!';
+      this.sendData();
+      this.playBtn.icon = 'square';
+      this.playBtn.text = 'stop';
+      this.timerId = setInterval(() => this.stopwatch(), 10);
+    } else {
+      clearInterval(this.timerId);
+      this.dataOut = '#';
+      this.sendData();
+      this.playBtn.icon = 'play';
+      this.playBtn.text = 'start';
+    }
   }
+
 
   start() {
     this.timer.ms = 0;
     this.timer.sec = 0;
     this.timer.min = 0;
-    clearInterval(this.timerId);
-    this.timerId = setInterval(() => this.stopwatch(), 10);
-    this.dataOut = '!';
-    this.sendData();
     this.ecChart.destroy();
     this.createGraph();
   }
@@ -283,21 +306,7 @@ export class GraphPage /*implements OnInit*/ {
     return (Math.random() * (12 - 11) + 11).toFixed(4);
   }
 
-
-  generateSinc(x) {
-    this.count += .2;
-    return ((Math.sin(x) * 3.14) / (3.14 * x));
-  }
-
-
-  setStatus(message) {
-    console.log(message);
-    this.ngZone.run(() => {
-      this.statusMessage = message;
-    });
-  }
-
-  async showAlert(peripheral, notification) {
+  async showAlert(notification) {
     const toast = await this.toastCtrl.create({
       message: notification,
       duration: 3000,
@@ -305,7 +314,6 @@ export class GraphPage /*implements OnInit*/ {
     });
     await toast.present();
   }
-
 
   str2ab(str) {
     const buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
@@ -319,8 +327,6 @@ export class GraphPage /*implements OnInit*/ {
   // prepend the attribute you want to change the logging updates of
   changeRateEC() {
     const temp = 1001 - this.updateFreqEC;
-    console.log(temp);
-    // console.log(temp);
     this.dataOut = 'E' + temp.toString();
     this.sendData();
   }
@@ -345,9 +351,18 @@ export class GraphPage /*implements OnInit*/ {
   }
 
   log() {
-    this.logger.curFile = moment(new Date()).format('DD_MM_YYYY_h:mm:ss_a') + '.txt';
-    this.fileWrite(logsPath + this.logger.curFile);
-    this.logger.isLogging = true;
+    this.logger.isLogging = !this.logger.isLogging;
+    if (this.logger.isLogging) {      // change color of button to RED TODO
+      this.logger.color = 'warning';
+      const date = moment(new Date());
+      this.logger.curFile = date.format('DD-MM-YYYY_h-mm-ss_a') + '.txt';
+      this.showAlert('Logging Data at ' + date.format('h:mm:ss_a'));
+      this.fileWrite(logsPath + this.logger.curFile);
+    } else {
+      this.showAlert('Log Saved');
+      this.logger.color = 'secondary';
+      this.events.publish('logs', 'data');
+    }
   }
 
   // ###########################################
@@ -383,19 +398,12 @@ export class GraphPage /*implements OnInit*/ {
     });
   }
 
-  async fileDelete() {
-    await Filesystem.deleteFile({
-      path: 'secrets/text.txt',
-      directory: FilesystemDirectory.Documents
-    });
-  }
-
-  async mkdir() {
+  async mkdir(filePath: string) {
     try {
       const ret = await Filesystem.mkdir({
-        path: 'secrets',
+        path: filePath,
         directory: FilesystemDirectory.Documents,
-        createIntermediateDirectories: false // like mkdir -p
+        createIntermediateDirectories: true // like mkdir -p
       });
     } catch (e) {
       console.error('Unable to make directory', e);
@@ -436,3 +444,11 @@ export class GraphPage /*implements OnInit*/ {
     }
   }
 }
+
+
+/*
+
+- create directories explicitly
+- add graph button
+
+*/

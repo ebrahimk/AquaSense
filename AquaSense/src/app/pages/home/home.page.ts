@@ -1,8 +1,8 @@
 import { BLE } from '@ionic-native/ble/ngx';
 import { Component, NgZone } from '@angular/core';
-import { NavController } from '@ionic/angular';
 import { ToastController } from '@ionic/angular';
 import { DataService } from '../../data-service.service';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -13,11 +13,11 @@ import { DataService } from '../../data-service.service';
 
 export class HomePage {
 
-  constructor(public navCtrl: NavController,
-              private toastCtrl: ToastController,
+  constructor(private toastCtrl: ToastController,
               private ble: BLE,
               private ngZone: NgZone,
-              private dataService: DataService) {
+              private dataService: DataService,
+              private router: Router) {
   }
   devices: any[] = [];
   statusMessage: string;
@@ -119,14 +119,20 @@ export class HomePage {
   }
 
   deviceSelected(device) {
-    this.dataService.myParam = { data: device };
+    this.dataService.myParam = {
+      data: device,
+      type: true
+    };
     // this.dataService.myParam = {data: this.testObj};
-    this.navCtrl.navigateRoot('/menu/graph');
+    this.router.navigate(['/menu/graph']);
   }
 
   deviceSelectedTest() {
-    this.dataService.myParam = { data: this.testObj };
-    this.navCtrl.navigateRoot('/menu/graph');
+    this.dataService.myParam = {
+      data: this.testObj,
+      type: true
+    };
+    this.router.navigate(['/menu/graph']);
   }
 
 
@@ -138,5 +144,6 @@ export class HomePage {
     });
     await toast.present();
   }
+
 
 }
