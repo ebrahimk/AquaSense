@@ -38,7 +38,7 @@
     "cordova-plugin-bluetoothle": "^4.5.5",
     "core-js": "^2.5.4",
     "crc": "^3.8.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "rxjs": "~6.5.1",
     "text-encoding": "^0.7.0",
     "tslib": "^1.9.0",
